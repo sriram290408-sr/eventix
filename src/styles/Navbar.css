@@ -1,0 +1,27 @@
+#app{
+    background: transparent;
+    box-shadow: none;
+    padding: 4px 12px;
+    position: relative;
+    z-index: 1;
+}
+
+#nav-links{
+    margin-left: auto;
+    font-size: 14px;
+    align-items: center;
+    display: flex;
+    gap: 10px;
+}
+
+.MuiIconButton-root svg{
+    color: white;
+}
+
+@media (max-width: 768px){
+
+    #nav-links{
+        display: none;
+    }
+
+}

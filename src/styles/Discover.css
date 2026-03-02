@@ -1,0 +1,51 @@
+.discover-container {
+    max-width: 1300px;
+    margin: 60px auto;
+    padding: 0 20px;
+}
+
+.main-title {
+    font-weight: 700 !important;
+    margin-bottom: 10px !important;
+}
+
+.sub-text {
+    color: gray;
+    margin-bottom: 40px !important;
+}
+
+.section-title {
+    font-weight: 600 !important;
+    margin-bottom: 25px !important;
+}
+
+.category-card {
+    background-color: #1e1e1e !important;
+    color: white !important;
+    border-radius: 12px !important;
+    height: 100%;
+    transition: 0.3s ease;
+}
+
+.category-card:hover {
+    transform: translateY(-4px);
+}
+
+.card-content {
+    display: flex;
+    gap: 15px;
+    align-items: flex-start;
+}
+
+.card-title {
+    font-weight: 600 !important;
+    margin-bottom: 5px !important;
+}
+
+.card-description {
+    font-size: 14px !important;
+    color: #b0b0b0 !important;
+    max-width: 175px;
+    line-height: 1.5;
+    word-break: break-word;
+}
