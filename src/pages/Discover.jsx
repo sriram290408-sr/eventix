@@ -1,7 +1,7 @@
 import React from "react";
 import { Typography, Grid, Card, CardContent } from "@mui/material";
 import Navbar from "../components/Navbar";
-import { Category } from "../context/Categories";
+import { Category } from "../components/Categories";
 import "../styles/Discover.css";
 
 function Discover() {
