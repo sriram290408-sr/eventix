@@ -24,7 +24,7 @@ function Navbar() {
   const open = Boolean(Menuanchor);
 
   const handleAvatarClick = (event) => {
-    setMenuanchor(event.currentTarget);
+    setMenuanchor(event.target);
   };
 
   const handleClose = () => {
@@ -67,13 +67,11 @@ function Navbar() {
             <Search size={20} />
           </IconButton>
 
-          {/* Avatar */}
           <Avatar
             sx={{ width: 30, height: 30, cursor: "pointer" }}
             onClick={handleAvatarClick}
           />
 
-          {/* Menu */}
           <Menu
             anchorEl={Menuanchor}
             open={open}
