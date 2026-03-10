@@ -1,12 +1,11 @@
 import React, { useState } from "react";
-import Sign_nav from "../components/Sign_nav";
 import {
   ExitToAppRounded,
   PhoneAndroidOutlined,
-  MailLockOutlined,
+  EmailOutlined,
   Google,
 } from "@mui/icons-material";
-
+import { Link } from "react-router-dom";
 import { Button, Typography, Divider, TextField } from "@mui/material";
 
 import "../styles/SignIn.css";
@@ -16,11 +15,19 @@ function SignIn() {
 
   return (
     <div>
-      <Sign_nav />
-
       <div className="signin-page">
         <div className="signin-card">
-          <ExitToAppRounded className="icon-box" />
+          <Button
+            component={Link}
+            to={"/"}
+            sx={{
+              display: "flex",
+              justifyContent: "start",
+              width: "fit-content",
+            }}
+          >
+            <ExitToAppRounded className="icon-box" />
+          </Button>
 
           <Typography variant="h5" className="title">
             Welcome to Eventix
@@ -45,14 +52,14 @@ function SignIn() {
                 placeholder="you@email.com"
                 fullWidth
                 className="input"
-                type="string"
+                type="text"
                 sx={{
                   backgroundColor: "white",
                   borderRadius: "6px",
                   "& .MuiOutlinedInput-root": {
                     height: "45px",
-                    width: "300px",
                     fontSize: "12px",
+                    borderColor: "black",
                   },
                 }}
               />
@@ -62,22 +69,14 @@ function SignIn() {
                 sx={{
                   color: "black",
                   backgroundColor: "white",
-                  width: "360px",
+                  width: "100%",
                   height: "35px",
                   display: "flex",
                   justifyContent: "center",
                   alignItems: "center",
-                  marginRight: 20,
-                  marginLeft: 0,
                 }}
               >
                 Continue with Email
-              </Button>
-
-              <Divider className="divider">OR</Divider>
-
-              <Button className="google-btn">
-                <Google /> Sign in with Google
               </Button>
             </div>
           )}
@@ -88,7 +87,7 @@ function SignIn() {
                 <Typography>Phone</Typography>
 
                 <Typography className="switch" onClick={() => setSign("mail")}>
-                  <MailLockOutlined fontSize="small" />
+                  <EmailOutlined fontSize="small" />
                   Use Email
                 </Typography>
               </div>
@@ -97,14 +96,14 @@ function SignIn() {
                 placeholder="+91 9876543210"
                 fullWidth
                 className="input"
-                type="string"
+                type="text"
                 sx={{
                   backgroundColor: "white",
                   borderRadius: "6px",
                   "& .MuiOutlinedInput-root": {
                     height: "45px",
-                    width: "300px",
                     fontSize: "12px",
+                    borderColor: "black",
                   },
                 }}
               />
@@ -114,25 +113,37 @@ function SignIn() {
                 sx={{
                   color: "black",
                   backgroundColor: "white",
-                  width: "360px",
+                  width: "100%",
                   height: "35px",
                   display: "flex",
                   justifyContent: "center",
                   alignItems: "center",
-                  marginRight: 20,
-                  marginLeft: 0,
                 }}
               >
                 Continue with Phone
               </Button>
-
-              <Divider className="divider">OR</Divider>
-
-              <Button className="google-btn">
-                <Google /> Sign in with Google
-              </Button>
             </div>
           )}
+          <Divider
+            sx={{
+              width: "26.5%",
+              marginBottom: 30,
+              borderColor: "#858585",
+            }}
+          />
+
+          <Button
+            className="google-btn"
+            sx={{
+              width: "100%",
+              color: "white",
+              backgroundColor: "#006bde",
+              top: "10px",
+              gap: "10px",
+            }}
+          >
+            <Google sx={{ color: "white" }} /> Sign in with Google
+          </Button>
         </div>
       </div>
     </div>

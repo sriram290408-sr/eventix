@@ -1,14 +1,20 @@
 import React, { useState } from "react";
 import Typography from "@mui/material/Typography";
 import Navbar from "../components/Navbar";
-import { ToggleButtonGroup, ToggleButton } from "@mui/material";
+import { Link } from "react-router-dom";
+import {
+  ToggleButtonGroup,
+  ToggleButton,
+  Divider,
+  Button,
+} from "@mui/material";
 import EventNoteOutlinedIcon from "@mui/icons-material/EventNoteOutlined";
 import "../styles/Event.css";
 
 function Event() {
   const [view, setView] = useState("upcoming");
 
-  const handleChange = (event, newView) => {
+  const handleChange = (_, newView) => {
     if (newView !== null) {
       setView(newView);
     }
@@ -16,8 +22,6 @@ function Event() {
 
   return (
     <div>
-      <Navbar />
-
       <div className="top">
         <div className="event-header">
           <Typography variant="h4" className="event-title">
@@ -38,18 +42,44 @@ function Event() {
 
       <div className="event-body">
         {view === "upcoming" && (
-          <div className="empty-state" style={{margin: "100px"}}>
-            <EventNoteOutlinedIcon className="empty-icon"  />
+          <div
+            className="empty-state"
+            style={{
+              margin: "100px",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              alignItems: "center",
+              gap: "10px",
+            }}
+          >
+            <EventNoteOutlinedIcon className="empty-icon" />
 
-            <Typography variant="h6" className="empty-title">
+            <Typography
+              variant="h6"
+              className="empty-title"
+              sx={{ fontSize: "22px" }}
+            >
               No Upcoming Events
             </Typography>
 
-            <Typography className="empty-sub">
+            <Typography className="empty-sub" sx={{ fontSize: "14px" }}>
               You have no upcoming events. Why not host one?
             </Typography>
 
-            <button className="create-btn">+ Create Event</button>
+            <Button
+              className="create-btn"
+              component={Link}
+              to={"/private/create-event"}
+              sx={{
+                color: "white",
+                fontWeight: "500",
+                backgroundColor: "#007bff",
+                borderColor: "white",
+              }}
+            >
+              + Create Event
+            </Button>
           </div>
         )}
 

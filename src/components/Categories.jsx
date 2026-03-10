@@ -16,12 +16,14 @@ export const Category = [
     title: "Tech",
     description:
       "Explore the latest in software, gadgets, startups and innovation.",
+    link: "/events/tech",
   },
   {
     id: 2,
     icon: <Utensils size={40} color="#fb923c" />,
     title: "Food & Drink",
     description: "Discover culinary experiences, tastings and food festivals.",
+    link: "/events/food",
   },
   {
     id: 3,
@@ -29,6 +31,7 @@ export const Category = [
     title: "AI",
     description:
       "Dive into artificial intelligence, machine learning and future tech.",
+    link: "/events/ai",
   },
   {
     id: 4,
@@ -36,6 +39,7 @@ export const Category = [
     title: "Arts & Culture",
     description:
       "Experience art exhibitions, cultural events and creative workshops.",
+    link: "/events/arts",
   },
   {
     id: 5,
@@ -43,6 +47,7 @@ export const Category = [
     title: "Climate",
     description:
       "Join sustainability talks and environmental awareness programs.",
+    link: "/events/climate",
   },
   {
     id: 6,
@@ -50,6 +55,7 @@ export const Category = [
     title: "Fitness",
     description:
       "Participate in sports events, workouts and wellness challenges.",
+    link: "/events/fitness",
   },
   {
     id: 7,
@@ -57,6 +63,7 @@ export const Category = [
     title: "Wellness",
     description:
       "Attend mindfulness sessions, health talks and self-care programs.",
+    link: "/events/wellness",
   },
   {
     id: 8,
@@ -64,5 +71,6 @@ export const Category = [
     title: "Crypto",
     description:
       "Learn about blockchain technology and digital finance trends.",
+    link: "/events/crypto",
   },
 ];

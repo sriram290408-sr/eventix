@@ -1,0 +1,59 @@
+.footer-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 12px 40px;
+    z-index: 1000;
+    margin-left: 200px;
+}
+
+.MuiDivider-root {
+    position: fixed;
+    bottom: 70px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    border-color: white;
+    z-index: 999;
+}
+
+.footer-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+#host {
+    display: inline-block;
+    background: linear-gradient(100deg,
+            rgb(0, 161, 254),
+            rgb(0, 255, 234),
+            rgb(255, 136, 0));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 600;
+    margin-left: 65px;
+    margin-right: 100px;
+}
+
+.footer-right {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+}
+
+@media (max-width: 768px) {
+    .footer-box {
+        flex-direction: column;
+        gap: 10px;
+        padding: 15px;
+    }
+
+    .MuiDivider-root {
+        bottom: 110px;
+    }
+}

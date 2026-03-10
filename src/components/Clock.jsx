@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 
 const Clock = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -9,7 +9,7 @@ const Clock = () => {
     }, 1000);
 
     return () => clearInterval(timerId);
-  }, []);
+  });
 
   const options = {
     hour: "numeric",
@@ -20,7 +20,7 @@ const Clock = () => {
   const formattedTime = currentTime.toLocaleString(undefined, options);
 
   return (
-    <div style={{fontSize: "16px", color: "grey"}}>
+    <div style={{ fontSize: "16px", color: "grey" }}>
       <p>{formattedTime} IST</p>
     </div>
   );

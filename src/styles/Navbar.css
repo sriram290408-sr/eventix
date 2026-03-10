@@ -1,12 +1,10 @@
-#app{
-    background: transparent;
-    box-shadow: none;
+#app {
     padding: 4px 12px;
     position: relative;
     z-index: 1;
 }
 
-#nav-links{
+#nav-links {
     margin-left: auto;
     font-size: 14px;
     align-items: center;
@@ -14,13 +12,13 @@
     gap: 10px;
 }
 
-.MuiIconButton-root svg{
+.MuiIconButton-root svg {
     color: white;
 }
 
-@media (max-width: 768px){
+@media (max-width: 768px) {
 
-    #nav-links{
+    #nav-links {
         display: none;
     }
 

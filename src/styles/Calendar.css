@@ -1,0 +1,13 @@
+.container {
+    display: flex;
+    margin-top: 160px;
+    margin-left: 570px;
+    transform: scale(1.8);
+    width: fit-content;
+    height: fit-content;
+    background-color: white;
+}
+
+.MuiPickersCalendarHeader-label{
+    color: black;
+}

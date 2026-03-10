@@ -1,44 +1,43 @@
 import React from "react";
 import Sign_nav from "../components/Sign_nav";
 import { Typography, Button } from "@mui/material";
+import { Link } from "react-router-dom";
 import "../styles/Landing.css";
 
 function Landing() {
   return (
-    <div className="landing-container">
+    <div>
+      <div className="landing-container">
+        <div className="landing-section">
+          <div className="landing-text">
+            <Typography className="text-name">Eventix</Typography>
 
-      <Sign_nav />
+            <Typography className="main-heading">
+              Delightful events <br />
+              <span className="color-text">start here.</span>
+            </Typography>
 
-      <div className="landing-section">
+            <Typography className="sub">
+              Set up an event page, invite friends and sell tickets. Host a
+              memorable event today.
+            </Typography>
 
-        <div className="landing-text">
+            <Button
+              className="btn"
+              component={Link}
+              to={"/private/create-event"}
+              sx={{ fontSize: "15px", fontWeight: "600" }}
+            >
+              Create Your First Event
+            </Button>
+          </div>
 
-          <Typography className="text-name">
-            Eventix
-          </Typography>
-
-          <Typography className="main-heading">
-            Delightful events <br />
-            <span className="color-text">start here.</span>
-          </Typography>
-
-          <Typography className="sub">
-            Set up an event page, invite friends and sell tickets.
-            Host a memorable event today.
-          </Typography>
-
-          <Button className="btn">
-            Create Your First Event
-          </Button>
-
+          <div className="phone">
+            <video autoPlay loop muted playsInline>
+              <source src="/src/assets/phone-dark.mp4" type="video/mp4" />
+            </video>
+          </div>
         </div>
-
-        <div className="phone">
-          <video autoPlay loop muted playsInline>
-            <source src="/src/assets/phone-dark.mp4" type="video/mp4" />
-          </video>
-        </div>
-
       </div>
     </div>
   );

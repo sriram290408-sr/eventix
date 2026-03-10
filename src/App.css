@@ -21,7 +21,6 @@ body::before{
         rgba(0,102,254,0.4) 40%,
         rgba(0, 54, 116, 0) 80%
     );
-
     filter: blur(150px);
 }
 

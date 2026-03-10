@@ -1,17 +1,14 @@
 import React from "react";
-import "../styles/Navbar.css";
 import { AppBar, Toolbar, Button, Typography, Stack } from "@mui/material";
+import "../styles/Navbar.css";
 import Clock from "./Clock";
 import { Link } from "react-router-dom";
 
 function Sign_nav() {
   return (
-    <AppBar position="static" id="app">
+    <AppBar position="sticky" color="transparent" elevation={0}>
       <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
-
-        <Typography sx={{ fontSize: "30px", fontWeight: "bold" }}>
-          ✦
-        </Typography>
+        <Typography sx={{ fontSize: "30px", fontWeight: "bold" }}>✦</Typography>
 
         <Stack
           direction="row"
@@ -19,12 +16,14 @@ function Sign_nav() {
           sx={{
             flexGrow: 1,
             justifyContent: "flex-end",
-            alignItems: "center"
+            alignItems: "center",
           }}
         >
           <Clock />
 
           <Button
+            component={Link}
+            to="/discover"
             sx={{
               color: "grey",
               textTransform: "none",
@@ -35,13 +34,15 @@ function Sign_nav() {
           </Button>
 
           <Button
-            // component={Link}
-            // to="/SignIn"
+            component={Link}
+            to="/SignIn"
             sx={{
+              display: "flex",
+              alignItems: "center",
+              padding: "7px",
               color: "white",
               backgroundColor: "grey",
               borderRadius: "50px",
-              padding: "6px 18px",
               fontSize: "14px",
               textTransform: "none",
               "&:hover": {
@@ -51,7 +52,6 @@ function Sign_nav() {
           >
             Sign In
           </Button>
-
         </Stack>
       </Toolbar>
     </AppBar>

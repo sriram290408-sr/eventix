@@ -18,23 +18,20 @@ import Clock from "./Clock";
 import { Link } from "react-router-dom";
 
 function Navbar() {
-
-  const [Menuanchor, setMenuanchor] = useState(null);
-
-  const open = Boolean(Menuanchor);
+  const [menuAnchor, setMenuAnchor] = useState(null);
+  const open = Boolean(menuAnchor);
 
   const handleAvatarClick = (event) => {
-    setMenuanchor(event.target);
+    setMenuAnchor(event.target);
   };
 
   const handleClose = () => {
-    setMenuanchor(null);
+    setMenuAnchor(null);
   };
 
   return (
-    <AppBar position="static" id="app">
+    <AppBar position="sticky" id="app" color="transparent" elevation={0}>
       <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
-
         <Typography sx={{ fontSize: "35px" }}>✦</Typography>
 
         <Stack
@@ -42,24 +39,38 @@ function Navbar() {
           spacing={2}
           sx={{ flexGrow: 1, justifyContent: "center" }}
         >
-          <Button color="inherit" startIcon={<Ticket size={18} />}>
+          <Button
+            component={Link}
+            to="/private/event"
+            color="inherit"
+            startIcon={<Ticket size={18} />}
+          >
             Events
           </Button>
 
-          <Button color="inherit" startIcon={<CalendarDays size={18} />}>
+          <Button
+            component={Link}
+            to="/private/calendar"
+            color="inherit"
+            startIcon={<CalendarDays size={18} />}
+          >
             Calendars
           </Button>
 
-          <Button color="inherit" startIcon={<Compass size={18} />}>
+          <Button
+            component={Link}
+            to="/discover"
+            color="inherit"
+            startIcon={<Compass size={18} />}
+          >
             Discover
           </Button>
         </Stack>
 
         <Stack direction="row" spacing={2} alignItems="center">
-
           <Clock />
 
-          <Button color="inherit">
+          <Button component={Link} to="/private/create-event" color="inherit">
             Create Event
           </Button>
 
@@ -72,28 +83,25 @@ function Navbar() {
             onClick={handleAvatarClick}
           />
 
-          <Menu
-            anchorEl={Menuanchor}
-            open={open}
-            onClose={handleClose}
-          >
+          <Menu anchorEl={menuAnchor} open={open} onClose={handleClose}>
             <MenuItem onClick={handleClose}>
-              <Avatar sx={{ width: 32, height: 32, marginRight: 1 }} />
+              <Avatar sx={{ width: 32, height: 32, mr: 1 }} />
               <div>
                 <Typography>UserName</Typography>
-                <Typography variant="body2">
-                  username123@gmail.com
-                </Typography>
+                <Typography variant="body2">username123@gmail.com</Typography>
               </div>
             </MenuItem>
 
             <Divider />
 
+            <MenuItem onClick={handleClose} component={Link} to={"/private/event"}>
+              Home
+            </MenuItem>
             <MenuItem onClick={handleClose}>View Profile</MenuItem>
-            <MenuItem onClick={handleClose}>Settings</MenuItem>
-            <MenuItem onClick={handleClose}>Sign Out</MenuItem>
+            <MenuItem onClick={handleClose} component={Link} to={"/"}>
+              Sign Out
+            </MenuItem>
           </Menu>
-
         </Stack>
       </Toolbar>
     </AppBar>
