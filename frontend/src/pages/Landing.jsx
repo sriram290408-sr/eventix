@@ -1,8 +1,8 @@
 import { Typography, Button } from "@mui/material";
 import "../styles/Landing.css";
+import phone_dark from "../assets/phone-dark.mp4";
 
 function Landing() {
-  const phone_dark = "../assets/phone-dark.mp4";
   return (
     <div>
       <div className="landing-container">
