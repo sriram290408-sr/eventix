@@ -1,4 +1,5 @@
-const crypto = require("crypto");
+import crypto from "crypto";
+
 const generateSlug = async (text, checkExists) => {
   let baseSlug = text
     .toString()
@@ -37,4 +38,4 @@ const generateSlug = async (text, checkExists) => {
   return finalSlug;
 };
 
-module.exports = generateSlug;
+export default generateSlug;

@@ -1,7 +1,9 @@
-const logger = require("../utils/logger");
-const { errorResponse } = require("../utils/responseHandler");
+import logger from "../utils/logger.js";
+import responseHandler from "../utils/responseHandler.js";
 
-const errorHandler = (err, req, res, next) => {
+const { errorResponse } = responseHandler;
+
+export const errorHandler = (err, req, res, next) => {
   logger.error("API Error", err);
 
   let statusCode = err.statusCode || 500;
@@ -34,17 +36,12 @@ const errorHandler = (err, req, res, next) => {
       .join(", ");
   }
 
-  return errorResponse(res, message, code, statusCode);
+  return errorResponse(res, message, code, statusCode, err);
 };
 
-const notFound = (req, res, next) => {
+export const notFound = (req, res, next) => {
   const error = new Error(`Route not found: ${req.originalUrl}`);
   error.statusCode = 404;
   error.code = "NOT_FOUND";
   next(error);
-};
-
-module.exports = {
-  errorHandler,
-  notFound,
 };

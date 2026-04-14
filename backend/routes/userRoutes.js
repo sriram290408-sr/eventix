@@ -1,12 +1,11 @@
-const express = require("express");
+import express from "express";
+
+import { getProfile, updateProfile } from "../controllers/userController.js";
+
+import { protect } from "../middlewares/authMiddleware.js";
+import { validateProfileUpdate } from "../middlewares/validationMiddleware.js";
+
 const router = express.Router();
-
-const { getProfile, updateProfile } = require("../controllers/userController");
-
-const { protect } = require("../middlewares/authMiddleware");
-const {
-  validateProfileUpdate,
-} = require("../middlewares/validationMiddleware");
 
 // Get logged in user profile
 router.get("/profile", protect, getProfile);
@@ -14,4 +13,4 @@ router.get("/profile", protect, getProfile);
 // Update logged in user profile
 router.put("/profile", protect, validateProfileUpdate, updateProfile);
 
-module.exports = router;
+export default router;

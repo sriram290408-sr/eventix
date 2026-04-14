@@ -13,7 +13,7 @@ const baseLog = (level, message, meta = {}) => {
   } else {
     console.log(
       `[${logObject.timestamp}] ${level.toUpperCase().padEnd(5)}: ${message}`,
-      Object.keys(meta).length ? meta : "",
+      Object.keys(meta).length ? meta : ""
     );
   }
 };
@@ -36,4 +36,4 @@ const logger = {
   },
 };
 
-module.exports = logger;
+export default logger;

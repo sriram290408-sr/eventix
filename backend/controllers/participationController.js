@@ -1,6 +1,8 @@
-const Participation = require("../models/Participation");
-const Event = require("../models/Event");
-const { successResponse, errorResponse } = require("../utils/responseHandler");
+import Participation from "../models/Participation.js";
+import Event from "../models/Event.js";
+import responseHandler from "../utils/responseHandler.js";
+
+const { successResponse, errorResponse } = responseHandler;
 
 const isSameObjectId = (a, b) => String(a) === String(b);
 
@@ -13,12 +15,10 @@ const requestToJoin = async (req, res) => {
       return errorResponse(res, "Event not found", "NOT_FOUND", 404);
     }
 
-    // Creator cannot join their own event
     if (isSameObjectId(event.creator, req.user._id)) {
       return errorResponse(res, "You are the event creator", "NOT_ALLOWED", 400);
     }
 
-    // Prevent duplicate requests
     const existing = await Participation.findOne({
       event: event._id,
       user: req.user._id,
@@ -29,11 +29,10 @@ const requestToJoin = async (req, res) => {
         res,
         `Already ${existing.status}`,
         "ALREADY_EXISTS",
-        400,
+        400
       );
     }
 
-    // If approval is required -> pending, else auto approve
     const status = event.requireApproval ? "pending" : "approved";
 
     const participation = await Participation.create({
@@ -84,7 +83,12 @@ const getRequestOr404 = async (eventId, requestId, res) => {
 // Approve a pending request
 const approveRequest = async (req, res) => {
   try {
-    const request = await getRequestOr404(req.params.id, req.params.requestId, res);
+    const request = await getRequestOr404(
+      req.params.id,
+      req.params.requestId,
+      res
+    );
+
     if (!request) return;
 
     if (request.status !== "pending") {
@@ -92,7 +96,7 @@ const approveRequest = async (req, res) => {
         res,
         "Only pending requests can be approved",
         "INVALID_STATE",
-        400,
+        400
       );
     }
 
@@ -108,7 +112,12 @@ const approveRequest = async (req, res) => {
 // Reject a pending request
 const rejectRequest = async (req, res) => {
   try {
-    const request = await getRequestOr404(req.params.id, req.params.requestId, res);
+    const request = await getRequestOr404(
+      req.params.id,
+      req.params.requestId,
+      res
+    );
+
     if (!request) return;
 
     if (request.status !== "pending") {
@@ -116,7 +125,7 @@ const rejectRequest = async (req, res) => {
         res,
         "Only pending requests can be rejected",
         "INVALID_STATE",
-        400,
+        400
       );
     }
 
@@ -143,7 +152,7 @@ const getGuests = async (req, res) => {
   }
 };
 
-module.exports = {
+export default {
   requestToJoin,
   getRequests,
   approveRequest,

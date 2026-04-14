@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const participationSchema = new mongoose.Schema(
   {
@@ -40,7 +40,7 @@ const participationSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  },
+  }
 );
 
 participationSchema.index({ event: 1, user: 1 }, { unique: true });
@@ -69,4 +69,4 @@ participationSchema.pre("save", function (next) {
 
 const Participation = mongoose.model("Participation", participationSchema);
 
-module.exports = Participation;
+export default Participation;

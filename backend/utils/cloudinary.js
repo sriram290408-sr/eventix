@@ -1,10 +1,10 @@
-const { v2: cloudinary } = require("cloudinary");
+import { v2 as cloudinary } from "cloudinary";
 
-const hasCloudinaryConfig = () =>
+export const hasCloudinaryConfig = () =>
   Boolean(
     process.env.CLOUDINARY_CLOUD_NAME &&
-      process.env.CLOUDINARY_API_KEY &&
-      process.env.CLOUDINARY_API_SECRET,
+    process.env.CLOUDINARY_API_KEY &&
+    process.env.CLOUDINARY_API_SECRET
   );
 
 if (hasCloudinaryConfig()) {
@@ -15,20 +15,19 @@ if (hasCloudinaryConfig()) {
   });
 }
 
-const uploadEventImage = async (image) => {
-  if (!image || typeof image !== "string") return "";
-  if (!hasCloudinaryConfig()) return image;
+export const uploadEventImage = async (image) => {
+  try {
+    if (!image || typeof image !== "string") return "";
+    if (!hasCloudinaryConfig()) return image;
 
-  const result = await cloudinary.uploader.upload(image, {
-    folder: "eventaxis/events",
-    resource_type: "image",
-  });
+    const result = await cloudinary.uploader.upload(image, {
+      folder: "eventaxis/events",
+      resource_type: "image",
+    });
 
-  return result.secure_url || image;
+    return result.secure_url || image;
+  } catch (error) {
+    console.error("Cloudinary upload failed:", error.message);
+    return image;
+  }
 };
-
-module.exports = {
-  hasCloudinaryConfig,
-  uploadEventImage,
-};
-

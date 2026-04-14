@@ -1,11 +1,13 @@
-const mongoose = require("mongoose");
-const Event = require("../models/Event");
-const logger = require("../utils/logger");
-const { errorResponse } = require("../utils/responseHandler");
+import mongoose from "mongoose";
+import Event from "../models/Event.js";
+import logger from "../utils/logger.js";
+import responseHandler from "../utils/responseHandler.js";
+
+const { errorResponse } = responseHandler;
 
 const isSameObjectId = (a, b) => String(a) === String(b);
 
-const isEventAdmin = async (req, res, next) => {
+export const isEventAdmin = async (req, res, next) => {
   try {
     const { id } = req.params;
 
@@ -24,7 +26,7 @@ const isEventAdmin = async (req, res, next) => {
         res,
         "Only event creator can perform this action",
         "FORBIDDEN",
-        403,
+        403
       );
     }
 
@@ -32,9 +34,7 @@ const isEventAdmin = async (req, res, next) => {
 
     next();
   } catch (error) {
-    logger.error(`isEventAdmin middleware error: ${error.message}`);
+    logger.error(`isEventAdmin middleware error: ${error.message}`, error);
     next(error);
   }
 };
-
-module.exports = { isEventAdmin };

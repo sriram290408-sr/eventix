@@ -1,16 +1,15 @@
-const express = require("express");
+import express from "express";
+
+import eventController from "../controllers/eventController.js";
+import participationController from "../controllers/participationController.js";
+
+import { protect } from "../middlewares/authMiddleware.js";
+import { isEventAdmin } from "../middlewares/roleMiddleware.js";
+import { eventCreationLimiter } from "../middlewares/rateLimitMiddleware.js";
+
+import { validateEventCreation } from "../middlewares/validationMiddleware.js";
+
 const router = express.Router();
-
-const eventController = require("../controllers/eventController");
-const participationController = require("../controllers/participationController");
-
-const { protect } = require("../middlewares/authMiddleware");
-const { isEventAdmin } = require("../middlewares/roleMiddleware");
-const { eventCreationLimiter } = require("../middlewares/rateLimitMiddleware");
-
-const {
-  validateEventCreation,
-} = require("../middlewares/validationMiddleware");
 
 // Discover Events
 router.get("/discover", protect, eventController.getDiscoverEvents);
@@ -30,7 +29,7 @@ router.get("/my-events", protect, eventController.getMyEvents);
 // Attending Events
 router.get("/attending", protect, eventController.getAttendingEvents);
 
-// Get Event by slug (IMPORTANT FIX)
+// Get Event by slug
 router.get("/:slug", protect, eventController.getEventBySlug);
 
 // Update/Delete Event
@@ -64,4 +63,4 @@ router.put(
   participationController.rejectRequest
 );
 
-module.exports = router;
+export default router;

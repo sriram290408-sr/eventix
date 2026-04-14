@@ -1,7 +1,9 @@
-const { body, validationResult } = require("express-validator");
-const { errorResponse } = require("../utils/responseHandler");
+import { body, validationResult } from "express-validator";
+import responseHandler from "../utils/responseHandler.js";
 
-const handleValidation = (req, res, next) => {
+const { errorResponse } = responseHandler;
+
+export const handleValidation = (req, res, next) => {
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
@@ -16,7 +18,7 @@ const handleValidation = (req, res, next) => {
   next();
 };
 
-const validateEventCreation = [
+export const validateEventCreation = [
   body("title")
     .trim()
     .notEmpty()
@@ -72,7 +74,7 @@ const validateEventCreation = [
   handleValidation,
 ];
 
-const validateProfileUpdate = [
+export const validateProfileUpdate = [
   body("firstName")
     .optional()
     .trim()
@@ -102,9 +104,3 @@ const validateProfileUpdate = [
 
   handleValidation,
 ];
-
-module.exports = {
-  validateEventCreation,
-  validateProfileUpdate,
-  handleValidation,
-};

@@ -1,6 +1,8 @@
-const jwt = require("jsonwebtoken");
-const User = require("../models/User");
-const { errorResponse, successResponse } = require("../utils/responseHandler");
+import jwt from "jsonwebtoken";
+import User from "../models/User.js";
+import responseHandler from "../utils/responseHandler.js";
+
+const { errorResponse, successResponse } = responseHandler;
 
 const normalizeEmail = (email) => String(email || "").toLowerCase().trim();
 
@@ -16,7 +18,9 @@ const findAvailableUsername = async (baseUsername) => {
     const candidate =
       attempt === 0
         ? baseUsername.toLowerCase()
-        : `${baseUsername.toLowerCase()}${Math.floor(Math.random() * 9000 + 1000)}`;
+        : `${baseUsername.toLowerCase()}${Math.floor(
+          Math.random() * 9000 + 1000
+        )}`;
 
     // eslint-disable-next-line no-await-in-loop
     const exists = await User.findOne({ username: candidate });
@@ -27,7 +31,7 @@ const findAvailableUsername = async (baseUsername) => {
 };
 
 // ===================== REGISTER =====================
-const registerUser = async (req, res) => {
+export const registerUser = async (req, res) => {
   try {
     const { firstName, lastName, email, password } = req.body;
 
@@ -36,7 +40,7 @@ const registerUser = async (req, res) => {
         res,
         "Email and password are required",
         "VALIDATION_ERROR",
-        400,
+        400
       );
     }
 
@@ -56,7 +60,7 @@ const registerUser = async (req, res) => {
         res,
         "Unable to generate a unique username",
         "SERVER_ERROR",
-        500,
+        500
       );
     }
 
@@ -81,15 +85,21 @@ const registerUser = async (req, res) => {
           avatar: user.avatar,
         },
       },
-      201,
+      201
     );
   } catch (error) {
-    return errorResponse(res, error.message || "Registration failed", "ERROR", 500, error);
+    return errorResponse(
+      res,
+      error.message || "Registration failed",
+      "ERROR",
+      500,
+      error
+    );
   }
 };
 
 // ===================== LOGIN =====================
-const loginUser = async (req, res) => {
+export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -98,22 +108,32 @@ const loginUser = async (req, res) => {
         res,
         "Email and password are required",
         "VALIDATION_ERROR",
-        400,
+        400
       );
     }
 
     const normalizedEmail = normalizeEmail(email);
+
     const user = await User.findOne({ email: normalizedEmail });
 
     if (!user) {
-      return errorResponse(res, "Invalid email or password", "INVALID_CREDENTIALS", 401);
+      return errorResponse(
+        res,
+        "Invalid email or password",
+        "INVALID_CREDENTIALS",
+        401
+      );
     }
 
-    // ✅ Correct password check
     const isMatch = await user.matchPassword(password);
 
     if (!isMatch) {
-      return errorResponse(res, "Invalid email or password", "INVALID_CREDENTIALS", 401);
+      return errorResponse(
+        res,
+        "Invalid email or password",
+        "INVALID_CREDENTIALS",
+        401
+      );
     }
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
@@ -140,8 +160,6 @@ const loginUser = async (req, res) => {
 };
 
 // ===================== CURRENT USER =====================
-const getCurrentUser = async (req, res) => {
+export const getCurrentUser = async (req, res) => {
   return successResponse(res, req.user);
 };
-
-module.exports = { registerUser, loginUser, getCurrentUser };

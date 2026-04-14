@@ -1,9 +1,11 @@
-const Event = require("../models/Event");
-const Participation = require("../models/Participation");
-const generateSlug = require("../utils/generateSlug");
-const logger = require("../utils/logger");
-const { uploadEventImage } = require("../utils/cloudinary");
-const { successResponse, errorResponse } = require("../utils/responseHandler");
+import Event from "../models/Event.js";
+import Participation from "../models/Participation.js";
+import generateSlug from "../utils/generateSlug.js";
+import logger from "../utils/logger.js";
+import { uploadEventImage } from "../utils/cloudinary.js";
+import responseHandler from "../utils/responseHandler.js";
+
+const { successResponse, errorResponse } = responseHandler;
 
 const buildDiscoverFilter = (category) => {
   const filter = {
@@ -25,7 +27,7 @@ const addParticipationStatusToEvents = async (events, userId) => {
   }).select("event status");
 
   const statusByEventId = new Map(
-    participations.map((p) => [String(p.event), p.status]),
+    participations.map((p) => [String(p.event), p.status])
   );
 
   return events.map((e) => ({
@@ -97,7 +99,7 @@ const getDiscoverEvents = async (req, res) => {
 
     const enrichedEvents = await addParticipationStatusToEvents(
       events,
-      req.user._id,
+      req.user._id
     );
 
     return successResponse(res, enrichedEvents);
@@ -118,14 +120,12 @@ const getEventBySlug = async (req, res) => {
       return errorResponse(res, "Event not found", "NOT_FOUND", 404);
     }
 
-    let participationStatus = null;
-
     const participation = await Participation.findOne({
       event: event._id,
       user: req.user._id,
     });
 
-    participationStatus = participation?.status || null;
+    const participationStatus = participation?.status || null;
 
     return successResponse(res, {
       event,
@@ -208,6 +208,7 @@ const updateEvent = async (req, res, next) => {
           slug: candidateSlug,
           _id: { $ne: event._id },
         });
+
         return !!existing;
       });
     }
@@ -240,7 +241,7 @@ const deleteEvent = async (req, res, next) => {
   }
 };
 
-module.exports = {
+export default {
   createEvent,
   getDiscoverEvents,
   getEventBySlug,

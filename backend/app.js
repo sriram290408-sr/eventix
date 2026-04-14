@@ -1,18 +1,18 @@
-const express = require("express");
-const cors = require("cors");
-const helmet = require("helmet");
-const morgan = require("morgan");
-const cookieParser = require("cookie-parser");
-const compression = require("compression");
-const mongoSanitize = require("express-mongo-sanitize");
-const crypto = require("crypto");
+import express from "express";
+import cors from "cors";
+import helmet from "helmet";
+import morgan from "morgan";
+import cookieParser from "cookie-parser";
+import compression from "compression";
+import mongoSanitize from "express-mongo-sanitize";
+import crypto from "crypto";
 
-const authRoutes = require("./routes/authRoutes");
-const eventRoutes = require("./routes/eventRoutes");
-const userRoutes = require("./routes/userRoutes");
+import authRoutes from "./routes/authRoutes.js";
+import eventRoutes from "./routes/eventRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
 
-const { errorHandler, notFound } = require("./middlewares/errorMiddleware");
-const { generalLimiter } = require("./middlewares/rateLimitMiddleware");
+import { errorHandler, notFound } from "./middlewares/errorMiddleware.js";
+import { generalLimiter } from "./middlewares/rateLimitMiddleware.js";
 
 const app = express();
 
@@ -33,14 +33,13 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow Postman / Server-to-server calls
       if (!origin) return callback(null, true);
 
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);
-      } else {
-        return callback(new Error("Not allowed by CORS"));
       }
+
+      return callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
@@ -97,4 +96,4 @@ app.use("/api/v1/users", userRoutes);
 app.use(notFound);
 app.use(errorHandler);
 
-module.exports = app;
+export default app;

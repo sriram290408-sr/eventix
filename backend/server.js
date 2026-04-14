@@ -1,38 +1,20 @@
-const path = require("path");
-const dotenv = require("dotenv");
-const logger = require("./utils/logger");
+import path from "path";
+import dotenv from "dotenv";
+import { fileURLToPath } from "url";
 
-// Force load backend/.env always
+import logger from "./utils/logger.js";
+import app from "./app.js";
+import connectDB from "./config/db.js";
+
+// ====================== FIX __dirname ======================
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// ====================== ENV LOAD ======================
 dotenv.config({ path: path.join(__dirname, ".env") });
 
-const app = require("./app");
-const connectDB = require("./config/db");
-
 const PORT = process.env.PORT || 5000;
-
 let server;
-
-const startServer = async () => {
-  try {
-    await connectDB();
-
-    server = app.listen(PORT, () => {
-      logger.info(`✦ Eventix API Server running on port ${PORT}`);
-      logger.info(`Environment: ${process.env.NODE_ENV || "development"}`);
-      logger.info(
-        `Frontend URL: ${process.env.FRONTEND_URL || "http://localhost:5173"}`
-      );
-      logger.info(`Health: http://localhost:${PORT}/api/health`);
-    });
-  } catch (error) {
-    logger.error(`Database connection failed: ${error.message}`);
-
-    setTimeout(() => {
-      logger.warn("Retrying DB connection...");
-      startServer();
-    }, 5000);
-  }
-};
 
 // ====================== GRACEFUL SHUTDOWN ======================
 const shutdown = (signal) => {
@@ -59,6 +41,7 @@ process.on("SIGINT", () => shutdown("SIGINT"));
 
 process.on("unhandledRejection", (err) => {
   logger.error(`Unhandled Rejection: ${err.message}`);
+  shutdown("UNHANDLED_REJECTION");
 });
 
 process.on("uncaughtException", (err) => {
@@ -67,4 +50,26 @@ process.on("uncaughtException", (err) => {
 });
 
 // ====================== START SERVER ======================
+const startServer = async () => {
+  try {
+    await connectDB();
+
+    server = app.listen(PORT, () => {
+      logger.info(`Eventix API Server running on port ${PORT}`);
+      logger.info(`Environment: ${process.env.NODE_ENV || "development"}`);
+      logger.info(
+        `Frontend URL: ${process.env.FRONTEND_URL || "http://localhost:5173"}`
+      );
+      logger.info(`Health: http://localhost:${PORT}/api/health`);
+    });
+  } catch (error) {
+    logger.error(`Database connection failed: ${error.message}`);
+
+    setTimeout(() => {
+      logger.warn("Retrying DB connection...");
+      startServer();
+    }, 5000);
+  }
+};
+
 startServer();

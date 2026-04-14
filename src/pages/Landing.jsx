@@ -1,10 +1,8 @@
 import { Typography, Button } from "@mui/material";
-import { Link } from "react-router-dom";
 import "../styles/Landing.css";
 
 function Landing() {
-  const phone_dark =
-    "https://res.cloudinary.com/dzrz3w50w/video/upload/v1776160585/phone-dark_gm468i.mp4";
+  const phone_dark = "../assets/phone-dark.mp4";
   return (
     <div>
       <div className="landing-container">

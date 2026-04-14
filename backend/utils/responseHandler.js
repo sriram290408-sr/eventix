@@ -15,7 +15,7 @@ const responseHandler = {
     message = "Internal Server Error",
     code = "SERVER_ERROR",
     statusCode = 500,
-    error = null,
+    error = null
   ) => {
     return res.status(statusCode).json({
       success: false,
@@ -27,4 +27,4 @@ const responseHandler = {
   },
 };
 
-module.exports = responseHandler;
+export default responseHandler;
