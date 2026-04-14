@@ -1,12 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import {
-  Button,
-  Typography,
-  TextField,
-  CircularProgress,
-  Box,
-} from "@mui/material";
+import { Button, Typography, TextField, CircularProgress, Box } from "@mui/material";
 import { ExitToAppRounded } from "@mui/icons-material";
 import axios from "axios";
 
@@ -35,13 +29,16 @@ function SignUp() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (loading) return;
+
     setLoading(true);
     setErrorMsg("");
     setSuccessMsg("");
 
     try {
-      if (!formData.email || !formData.password) {
-        setErrorMsg("Email and password are required.");
+      if (!formData.firstName || !formData.email || !formData.password) {
+        setErrorMsg("First name, email and password are required.");
         setLoading(false);
         return;
       }
@@ -52,12 +49,20 @@ function SignUp() {
         return;
       }
 
-      const res = await axios.post("/api/v1/auth/register", {
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        password: formData.password,
-      });
+      const BASE_URL = import.meta.env.VITE_BACKEND_URL || "";
+
+      const res = await axios.post(
+        `${BASE_URL}/api/v1/auth/register`,
+        {
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          password: formData.password,
+        },
+        { withCredentials: true },
+      );
+
+      console.log("REGISTER RESPONSE:", res.data);
 
       if (res.data?.success) {
         setSuccessMsg("Account created successfully. Redirecting to login...");
@@ -66,8 +71,11 @@ function SignUp() {
         setErrorMsg(res.data?.message || "Registration failed. Please try again.");
       }
     } catch (err) {
+      console.log("REGISTER ERROR:", err);
+
       setErrorMsg(
         err.response?.data?.message ||
+          err.response?.data?.error ||
           err.message ||
           "Registration failed. Please try again.",
       );
@@ -91,22 +99,14 @@ function SignUp() {
           <ExitToAppRounded className="icon-box" />
         </Button>
 
-        <Typography
-          variant="h5"
-          className="title"
-          sx={{ textAlign: "center", marginBottom: 2 }}
-        >
+        <Typography variant="h5" className="title" sx={{ textAlign: "center", marginBottom: 2 }}>
           Welcome to Eventix
         </Typography>
 
-        <Typography
-          className="subtitle"
-          sx={{ textAlign: "center", marginBottom: 3 }}
-        >
+        <Typography className="subtitle" sx={{ textAlign: "center", marginBottom: 3 }}>
           Create an account to get started.
         </Typography>
 
-        {/* ❌ Error Message */}
         {errorMsg && (
           <Typography
             sx={{
@@ -120,7 +120,6 @@ function SignUp() {
           </Typography>
         )}
 
-        {/* ✅ Success Message */}
         {successMsg && (
           <Typography
             sx={{
@@ -189,11 +188,7 @@ function SignUp() {
                 "&:hover": { backgroundColor: "#0056b3" },
               }}
             >
-              {loading ? (
-                <CircularProgress size={20} color="inherit" />
-              ) : (
-                "Sign Up"
-              )}
+              {loading ? <CircularProgress size={20} color="inherit" /> : "Sign Up"}
             </Button>
           </Box>
         </form>

@@ -1,5 +1,6 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+
 import {
   Avatar,
   Box,
@@ -17,6 +18,7 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
+
 import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
 import PaidOutlinedIcon from "@mui/icons-material/PaidOutlined";
 import EventOutlinedIcon from "@mui/icons-material/EventOutlined";
@@ -25,124 +27,42 @@ import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined
 
 import { useAuth } from "../context/AuthContext";
 
-function safeJsonParse(maybeJson) {
-  if (typeof maybeJson !== "string") return null;
-  const trimmed = maybeJson.trim();
-  if (!trimmed.startsWith("{") && !trimmed.startsWith("[")) return null;
-  try {
-    return JSON.parse(trimmed);
-  } catch {
-    return null;
-  }
-}
-
-function stripHtml(html) {
-  if (!html || typeof html !== "string") return "";
-  return html
-    .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "")
-    .replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi, "")
-    .replace(/<\/?[^>]+(>|$)/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-function tiptapJsonToText(node) {
-  if (!node) return "";
-
-  if (typeof node === "string") return node;
-
-  if (Array.isArray(node)) {
-    return node.map(tiptapJsonToText).filter(Boolean).join(" ").trim();
-  }
-
-  if (typeof node === "object") {
-    if (node.type === "text" && typeof node.text === "string") {
-      return node.text;
-    }
-
-    const parts = [];
-    if (node.text && typeof node.text === "string") parts.push(node.text);
-    if (node.content) parts.push(tiptapJsonToText(node.content));
-    return parts.filter(Boolean).join(" ").trim();
-  }
-
-  return "";
-}
-
-function descriptionToPlainText(description) {
-  if (!description) return "";
-
-  if (typeof description === "string") {
-    const parsed = safeJsonParse(description);
-    if (parsed) return descriptionToPlainText(parsed);
-    return stripHtml(description);
-  }
-
-  if (typeof description === "object") {
-    return tiptapJsonToText(description);
-  }
-
-  return String(description);
-}
-
-function getGoogleMapsUrl({ location, locationUrl }) {
-  if (locationUrl && typeof locationUrl === "string" && locationUrl.trim()) {
-    return locationUrl.trim();
-  }
-
-  const q = encodeURIComponent(location || "");
-  return `https://www.google.com/maps/search/?api=1&query=${q}`;
-}
-
-function formatDateRange(startDate, endDate) {
-  const start = startDate ? new Date(startDate) : null;
-  const end = endDate ? new Date(endDate) : null;
-
-  if (!start || Number.isNaN(start.getTime())) return "";
-
-  const startLabel = start.toLocaleDateString("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
-
-  if (!end || Number.isNaN(end.getTime())) return startLabel;
-
-  const endLabel = end.toLocaleDateString("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
-
-  return `${startLabel} – ${endLabel}`;
-}
-
 function EventDetails() {
   const { slug } = useParams();
   const { token, user } = useAuth();
   const navigate = useNavigate();
 
+  const BASE_URL = import.meta.env.VITE_BACKEND_URL || "";
+
   const [event, setEvent] = useState(null);
-  const [participationStatus, setParticipationStatus] = useState(null); // join gating only
   const [loading, setLoading] = useState(false);
+
   const [joinLoading, setJoinLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
-  const [confirmCancelOpen, setConfirmCancelOpen] = useState(false);
-  const [requestsLoading, setRequestsLoading] = useState(false);
+
+  const [participationStatus, setParticipationStatus] = useState(null);
+
   const [requests, setRequests] = useState([]);
-  const [toast, setToast] = useState({ open: false, message: "" });
+  const [requestsLoading, setRequestsLoading] = useState(false);
 
-  const showToast = useCallback((message) => {
+  const [confirmCancelOpen, setConfirmCancelOpen] = useState(false);
+
+  const [toast, setToast] = useState({
+    open: false,
+    message: "",
+  });
+
+  // ---------------- Toast Message ----------------
+  const showToast = (message) => {
     setToast({ open: true, message });
-  }, []);
+  };
 
-  // ================= FETCH EVENT =================
-  const fetchEvent = useCallback(async () => {
+  // ---------------- Fetch Event ----------------
+  const fetchEvent = async () => {
     try {
-      if (!token) return;
       setLoading(true);
 
-      const res = await fetch(`/api/v1/events/${slug}`, {
+      const res = await fetch(`${BASE_URL}/api/v1/events/${slug}`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -154,140 +74,103 @@ function EventDetails() {
       if (data.success) {
         setEvent(data.data.event);
         setParticipationStatus(data.data.participationStatus);
-        setRequests([]);
       } else {
         setEvent(null);
       }
-    } catch {
+    } catch (err) {
+      console.log("Fetch Event Error:", err);
       setEvent(null);
     } finally {
       setLoading(false);
     }
-  }, [slug, token]);
+  };
 
-  useEffect(() => {
-    fetchEvent();
-  }, [fetchEvent]);
-
-  const fetchRequests = useCallback(
-    async (eventId) => {
-      if (!eventId || !token) return;
-      setRequestsLoading(true);
-      try {
-        const res = await fetch(`/api/v1/events/${eventId}/requests`, {
-          method: "GET",
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const data = await res.json();
-        if (data?.success) {
-          setRequests(Array.isArray(data.data) ? data.data : []);
-        } else {
-          setRequests([]);
-        }
-      } catch {
-        setRequests([]);
-      } finally {
-        setRequestsLoading(false);
-      }
-    },
-    [token],
-  );
-
-  const approveRequest = useCallback(
-    async (eventId, requestId) => {
-      if (!eventId || !requestId || !token) return;
-      try {
-        const res = await fetch(
-          `/api/v1/events/${eventId}/requests/${requestId}/approve`,
-          {
-            method: "PUT",
-            headers: { Authorization: `Bearer ${token}` },
-          },
-        );
-        const data = await res.json();
-        if (data?.success) {
-          showToast("Approved");
-          fetchRequests(eventId);
-        } else {
-          showToast(data?.message || "Approve failed");
-        }
-      } catch {
-        showToast("Approve failed");
-      }
-    },
-    [fetchRequests, showToast, token],
-  );
-
-  const rejectRequest = useCallback(
-    async (eventId, requestId) => {
-      if (!eventId || !requestId || !token) return;
-      try {
-        const res = await fetch(
-          `/api/v1/events/${eventId}/requests/${requestId}/reject`,
-          {
-            method: "PUT",
-            headers: { Authorization: `Bearer ${token}` },
-          },
-        );
-        const data = await res.json();
-        if (data?.success) {
-          showToast("Rejected");
-          fetchRequests(eventId);
-        } else {
-          showToast(data?.message || "Reject failed");
-        }
-      } catch {
-        showToast("Reject failed");
-      }
-    },
-    [fetchRequests, showToast, token],
-  );
-
-  const cancelEvent = useCallback(async () => {
-    if (!event?._id || !token) return;
-
-    setDeleteLoading(true);
+  // ---------------- Fetch Requests ----------------
+  const fetchRequests = async (eventId) => {
     try {
-      const res = await fetch(`/api/v1/events/${event._id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
+      setRequestsLoading(true);
+
+      const res = await fetch(`${BASE_URL}/api/v1/events/${eventId}/requests`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
+
       const data = await res.json();
 
-      if (data?.success) {
-        showToast("Event cancelled");
-        setConfirmCancelOpen(false);
-        // Navigate away since this event no longer exists.
-        navigate("/private/my-event", { replace: true });
+      if (data.success) {
+        setRequests(data.data || []);
       } else {
-        showToast(data?.message || "Failed to cancel event");
+        setRequests([]);
       }
-    } catch {
-      showToast("Failed to cancel event");
+    } catch (err) {
+      console.log("Fetch Requests Error:", err);
+      setRequests([]);
     } finally {
-      setDeleteLoading(false);
+      setRequestsLoading(false);
     }
-  }, [event?._id, navigate, showToast, token]);
+  };
 
-  // ================= COPY LINK =================
-  const copyLink = useCallback(async () => {
+  // ---------------- Approve Request ----------------
+  const approveRequest = async (eventId, requestId) => {
     try {
-      const url = `${window.location.origin}/private/event/${slug}`;
-      await navigator.clipboard.writeText(url);
-      showToast("Event link copied");
-    } catch {
-      showToast("Failed to copy link");
+      const res = await fetch(
+        `${BASE_URL}/api/v1/events/${eventId}/requests/${requestId}/approve`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      const data = await res.json();
+
+      if (data.success) {
+        showToast("Approved");
+        fetchRequests(eventId);
+      } else {
+        showToast(data.message || "Approve failed");
+      }
+    } catch (err) {
+      console.log("Approve Error:", err);
+      showToast("Approve failed");
     }
-  }, [showToast, slug]);
+  };
 
-  // ================= JOIN EVENT =================
-  const handleJoin = useCallback(async () => {
+  // ---------------- Reject Request ----------------
+  const rejectRequest = async (eventId, requestId) => {
     try {
-      if (!event?._id || !token) return;
+      const res = await fetch(`${BASE_URL}/api/v1/events/${eventId}/requests/${requestId}/reject`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        showToast("Rejected");
+        fetchRequests(eventId);
+      } else {
+        showToast(data.message || "Reject failed");
+      }
+    } catch (err) {
+      console.log("Reject Error:", err);
+      showToast("Reject failed");
+    }
+  };
+
+  // ---------------- Join Event ----------------
+  const handleJoin = async () => {
+    try {
+      if (!event?._id) return;
 
       setJoinLoading(true);
 
-      const res = await fetch(`/api/v1/events/${event._id}/join`, {
+      const res = await fetch(`${BASE_URL}/api/v1/events/${event._id}/join`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -297,56 +180,110 @@ function EventDetails() {
       const data = await res.json();
 
       if (data.success) {
-        const status =
-          data.data?.status || (event.requireApproval ? "pending" : "approved");
+        const status = data.data?.status || "approved";
         setParticipationStatus(status);
-        showToast(
-          status === "pending"
-            ? "Request sent for approval"
-            : "You have joined the event",
-        );
+
+        if (status === "pending") {
+          showToast("Request sent for approval");
+        } else {
+          showToast("You joined the event!");
+        }
       } else {
         showToast(data.message || "Failed to join event");
       }
-    } catch {
+    } catch (err) {
+      console.log("Join Error:", err);
       showToast("Failed to join event");
     } finally {
       setJoinLoading(false);
     }
-  }, [event?._id, event?.requireApproval, showToast, token]);
+  };
 
-  // ================= UI CONDITIONS =================
-  const isCreator = useMemo(
-    () => event?.creator?._id && user?._id && event.creator._id === user._id,
-    [event?.creator?._id, user?._id],
-  );
+  // ---------------- Cancel Event ----------------
+  const cancelEvent = async () => {
+    try {
+      if (!event?._id) return;
 
-  const canJoin = useMemo(() => {
-    if (!event?._id) return false;
-    if (isCreator) return false;
-    return !participationStatus || participationStatus === "rejected";
-  }, [event?._id, isCreator, participationStatus]);
+      setDeleteLoading(true);
 
-  const descriptionText = useMemo(
-    () => descriptionToPlainText(event?.description),
-    [event?.description],
-  );
+      const res = await fetch(`${BASE_URL}/api/v1/events/${event._id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-  const mapHref = useMemo(
-    () =>
-      getGoogleMapsUrl({
-        location: event?.location || "",
-        locationUrl: event?.locationUrl || "",
-      }),
-    [event?.location, event?.locationUrl],
-  );
+      const data = await res.json();
 
-  const dateRange = useMemo(
-    () => formatDateRange(event?.startDate, event?.endDate),
-    [event?.startDate, event?.endDate],
-  );
+      if (data.success) {
+        showToast("Event cancelled");
+        navigate("/private/my-event", { replace: true });
+      } else {
+        showToast(data.message || "Failed to cancel event");
+      }
+    } catch (err) {
+      console.log("Cancel Event Error:", err);
+      showToast("Failed to cancel event");
+    } finally {
+      setDeleteLoading(false);
+      setConfirmCancelOpen(false);
+    }
+  };
 
-  // ================= LOADING =================
+  // ---------------- Copy Link ----------------
+  const copyLink = async () => {
+    try {
+      const url = `${window.location.origin}/private/event/${slug}`;
+      await navigator.clipboard.writeText(url);
+      showToast("Event link copied");
+    } catch {
+      showToast("Failed to copy link");
+    }
+  };
+
+  // ---------------- Clean Description ----------------
+  const cleanDescription = (desc) => {
+    if (!desc) return "";
+    if (typeof desc === "string") {
+      return desc.replace(/<\/?[^>]+(>|$)/g, "");
+    }
+    return JSON.stringify(desc);
+  };
+
+  // ---------------- Format Date ----------------
+  const formatDate = (date) => {
+    if (!date) return "";
+    return new Date(date).toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
+  // ---------------- Check Creator ----------------
+  const isCreator = event?.creator?._id === user?._id;
+
+  // ---------------- Join Button Condition ----------------
+  const canJoin = !isCreator && (!participationStatus || participationStatus === "rejected");
+
+  // ---------------- Google Map Link ----------------
+  const mapUrl = event?.locationUrl
+    ? event.locationUrl
+    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+        event?.location || "",
+      )}`;
+
+  // ---------------- Load Event When Page Opens ----------------
+  useEffect(() => {
+    if (!token) {
+      navigate("/signin", { replace: true });
+      return;
+    }
+
+    fetchEvent();
+  }, [token, slug]);
+
+  // ---------------- Loading ----------------
   if (loading) {
     return (
       <Box sx={{ display: "flex", justifyContent: "center", mt: 10 }}>
@@ -355,7 +292,7 @@ function EventDetails() {
     );
   }
 
-  // ================= EVENT NOT FOUND =================
+  // ---------------- Not Found ----------------
   if (!event) {
     return (
       <Box sx={{ textAlign: "center", mt: 10 }}>
@@ -366,23 +303,21 @@ function EventDetails() {
     );
   }
 
-  const pageTheme = event.theme || {};
-  const pageFont = pageTheme.font || undefined;
   const heroImage =
     event.image ||
     "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=1200&auto=format";
 
+  const pageTheme = event.theme || {};
+
   return (
-    <Box sx={{ fontFamily: pageFont, minHeight: "100vh" }}>
-      {/* Background (from event theme) */}
+    <Box sx={{ minHeight: "100vh" }}>
+      {/* ✅ Background Video */}
       {pageTheme.video && (
         <video
-          key={pageTheme.video}
           autoPlay
           loop
           muted
           playsInline
-          preload="auto"
           style={{
             position: "fixed",
             width: "100%",
@@ -397,19 +332,17 @@ function EventDetails() {
         </video>
       )}
 
+      {/* ✅ Fixed Background Theme Overlay */}
       <div
         style={{
           position: "fixed",
           width: "100%",
           height: "100%",
-          background:
-            pageTheme.bg ||
-            (pageTheme.video ? "rgba(0,0,0,0.35)" : "#0e0e0e"),
-          opacity: pageTheme.video ? 0.55 : 1,
           top: 0,
           left: 0,
           zIndex: -1,
           pointerEvents: "none",
+          background: pageTheme.video ? "rgba(0,0,0,0.65)" : pageTheme.bg || "#0e0e0e",
         }}
       />
 
@@ -424,65 +357,53 @@ function EventDetails() {
             boxShadow: "0 14px 48px rgba(0,0,0,0.35)",
           }}
         >
+          {/* Banner */}
           <Box sx={{ position: "relative" }}>
             <Box
               component="img"
               src={heroImage}
-              alt={event.title || "Event"}
-              loading="lazy"
+              alt={event.title}
               sx={{
                 width: "100%",
                 height: { xs: 220, sm: 320 },
                 objectFit: "cover",
-                display: "block",
               }}
             />
             <Box
               sx={{
                 position: "absolute",
                 inset: 0,
-                background:
-                  "linear-gradient(180deg, rgba(0,0,0,0.20) 0%, rgba(0,0,0,0.80) 100%)",
+                background: "linear-gradient(180deg, rgba(0,0,0,0.20) 0%, rgba(0,0,0,0.80) 100%)",
               }}
             />
           </Box>
 
           <CardContent sx={{ p: { xs: 2.5, sm: 4 } }}>
             <Stack spacing={2.2}>
-              <Stack
-                direction={{ xs: "column", sm: "row" }}
-                spacing={1.5}
-                alignItems={{ xs: "flex-start", sm: "center" }}
-                justifyContent="space-between"
+              {/* Title */}
+              <Typography
+                variant="h3"
+                sx={{
+                  fontWeight: 850,
+                  color: "white",
+                  fontSize: { xs: "2rem", sm: "2.4rem" },
+                }}
               >
-                <Typography
-                  variant="h3"
-                  sx={{
-                    fontWeight: 850,
-                    color: "white",
-                    fontSize: { xs: "2rem", sm: "2.4rem" },
-                    lineHeight: 1.15,
-                  }}
-                >
-                  {event.title}
-                </Typography>
-              </Stack>
+                {event.title}
+              </Typography>
 
+              {/* Info Section */}
               <Stack
                 direction={{ xs: "column", sm: "row" }}
                 spacing={2}
-                divider={
-                  <Divider
-                    flexItem
-                    sx={{ borderColor: "rgba(255,255,255,0.12)" }}
-                  />
-                }
+                divider={<Divider flexItem sx={{ borderColor: "rgba(255,255,255,0.12)" }} />}
               >
+                {/* Left Info */}
                 <Stack spacing={1.2} sx={{ flex: 1 }}>
                   <Stack direction="row" spacing={1} alignItems="center">
                     <EventOutlinedIcon sx={{ color: "rgba(255,255,255,0.85)" }} />
                     <Typography sx={{ color: "rgba(255,255,255,0.85)" }}>
-                      {dateRange || "Date TBD"}
+                      {formatDate(event.startDate)} - {formatDate(event.endDate)}
                     </Typography>
                   </Stack>
 
@@ -494,31 +415,23 @@ function EventDetails() {
                   </Stack>
 
                   <Stack direction="row" spacing={1} alignItems="center">
-                    <PersonOutlineOutlinedIcon
-                      sx={{ color: "rgba(255,255,255,0.85)" }}
-                    />
+                    <PersonOutlineOutlinedIcon sx={{ color: "rgba(255,255,255,0.85)" }} />
                     <Stack direction="row" spacing={1} alignItems="center">
-                      <Avatar
-                        src={event.creator?.avatar || ""}
-                        sx={{ width: 26, height: 26 }}
-                      />
+                      <Avatar src={event.creator?.avatar || ""} sx={{ width: 26, height: 26 }} />
                       <Typography sx={{ color: "rgba(255,255,255,0.85)" }}>
-                        {event.creator?.username ||
-                          event.creator?.email ||
-                          "Unknown"}
+                        {event.creator?.username || event.creator?.email || "Unknown"}
                       </Typography>
                     </Stack>
                   </Stack>
                 </Stack>
 
+                {/* Right Info */}
                 <Stack spacing={1.2} sx={{ flex: 1 }}>
                   <Stack direction="row" spacing={1} alignItems="center">
-                    <LocationOnOutlinedIcon
-                      sx={{ color: "rgba(255,255,255,0.85)" }}
-                    />
+                    <LocationOnOutlinedIcon sx={{ color: "rgba(255,255,255,0.85)" }} />
                     <Typography
                       component="a"
-                      href={mapHref}
+                      href={mapUrl}
                       target="_blank"
                       rel="noreferrer"
                       sx={{
@@ -533,6 +446,7 @@ function EventDetails() {
                 </Stack>
               </Stack>
 
+              {/* Buttons */}
               <Stack
                 direction={{ xs: "column", sm: "row" }}
                 spacing={1.5}
@@ -593,10 +507,9 @@ function EventDetails() {
 
               <Divider sx={{ borderColor: "rgba(255,255,255,0.12)" }} />
 
+              {/* Description */}
               <Box>
-                <Typography
-                  sx={{ fontSize: "1.1rem", fontWeight: 800, color: "white" }}
-                >
+                <Typography sx={{ fontSize: "1.1rem", fontWeight: 800, color: "white" }}>
                   Description
                 </Typography>
 
@@ -608,10 +521,11 @@ function EventDetails() {
                     whiteSpace: "pre-wrap",
                   }}
                 >
-                  {descriptionText || "No description provided."}
+                  {cleanDescription(event.description) || "No description provided."}
                 </Typography>
               </Box>
 
+              {/* Join Requests */}
               {isCreator && (
                 <>
                   <Divider sx={{ borderColor: "rgba(255,255,255,0.12)" }} />
@@ -652,13 +566,7 @@ function EventDetails() {
                     </Stack>
 
                     {requestsLoading ? (
-                      <Box
-                        sx={{
-                          display: "flex",
-                          justifyContent: "center",
-                          py: 3,
-                        }}
-                      >
+                      <Box sx={{ display: "flex", justifyContent: "center", py: 3 }}>
                         <CircularProgress size={22} sx={{ color: "#64a0fa" }} />
                       </Box>
                     ) : requests.length === 0 ? (
@@ -684,17 +592,14 @@ function EventDetails() {
                               spacing={1.2}
                             >
                               <Box>
-                                <Typography
-                                  sx={{
-                                    color: "white",
-                                    fontWeight: 800,
-                                    lineHeight: 1.2,
-                                  }}
-                                >
+                                <Typography sx={{ color: "white", fontWeight: 800 }}>
                                   {req.user?.username ||
-                                    `${req.user?.firstName || ""} ${req.user?.lastName || ""}`.trim() ||
+                                    `${req.user?.firstName || ""} ${
+                                      req.user?.lastName || ""
+                                    }`.trim() ||
                                     "User"}
                                 </Typography>
+
                                 <Typography
                                   sx={{
                                     color: "rgba(255,255,255,0.7)",
@@ -708,22 +613,25 @@ function EventDetails() {
 
                               <Stack direction="row" spacing={1}>
                                 <Button
-                                  onClick={() =>
-                                    approveRequest(event._id, req._id)
-                                  }
+                                  onClick={() => approveRequest(event._id, req._id)}
                                   variant="contained"
                                   color="success"
-                                  sx={{ borderRadius: "12px", fontWeight: 800 }}
+                                  sx={{
+                                    borderRadius: "12px",
+                                    fontWeight: 800,
+                                  }}
                                 >
                                   Approve
                                 </Button>
+
                                 <Button
-                                  onClick={() =>
-                                    rejectRequest(event._id, req._id)
-                                  }
+                                  onClick={() => rejectRequest(event._id, req._id)}
                                   variant="contained"
                                   color="error"
-                                  sx={{ borderRadius: "12px", fontWeight: 800 }}
+                                  sx={{
+                                    borderRadius: "12px",
+                                    fontWeight: 800,
+                                  }}
                                 >
                                   Reject
                                 </Button>
@@ -741,6 +649,7 @@ function EventDetails() {
         </Card>
       </Box>
 
+      {/* Snackbar */}
       <Snackbar
         open={toast.open}
         onClose={() => setToast({ open: false, message: "" })}
@@ -749,10 +658,8 @@ function EventDetails() {
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       />
 
-      <Dialog
-        open={confirmCancelOpen}
-        onClose={() => (deleteLoading ? null : setConfirmCancelOpen(false))}
-      >
+      {/* Cancel Dialog */}
+      <Dialog open={confirmCancelOpen} onClose={() => setConfirmCancelOpen(false)}>
         <DialogTitle>Cancel this event?</DialogTitle>
         <DialogContent>
           <DialogContentText>
@@ -760,18 +667,10 @@ function EventDetails() {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button
-            onClick={() => setConfirmCancelOpen(false)}
-            disabled={deleteLoading}
-          >
+          <Button onClick={() => setConfirmCancelOpen(false)} disabled={deleteLoading}>
             Close
           </Button>
-          <Button
-            onClick={cancelEvent}
-            disabled={deleteLoading}
-            color="error"
-            variant="contained"
-          >
+          <Button onClick={cancelEvent} disabled={deleteLoading} color="error" variant="contained">
             OK
           </Button>
         </DialogActions>

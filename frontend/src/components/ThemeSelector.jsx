@@ -1,17 +1,9 @@
-import React from "react";
-import { Box, Typography, Button, Drawer, Divider } from "@mui/material";
+import { Box, Typography, Button, Drawer } from "@mui/material";
 import { ArrowDropDown, ArrowDropUp } from "@mui/icons-material";
 
-function ThemeSelector({
-  themes,
-  selectedTheme,
-  setSelectedTheme,
-  drawerOpen,
-  setDrawerOpen,
-}) {
+function ThemeSelector({ themes, selectedTheme, setSelectedTheme, drawerOpen, setDrawerOpen }) {
   return (
-    <>
-      {/* Theme Box */}
+    <div>
       <Box
         sx={{
           mt: 3,
@@ -31,17 +23,21 @@ function ThemeSelector({
             src={selectedTheme.theme}
             width={60}
             height={60}
-            style={{ borderRadius: 10 }}
+            style={{ borderRadius: 10, objectFit: "cover" }}
             alt="theme"
           />
 
           <Box>
-            <Typography variant="body2">Theme</Typography>
-            <Typography variant="h6">{selectedTheme.name}</Typography>
+            <Typography variant="body2" sx={{ opacity: 0.8 }}>
+              Theme
+            </Typography>
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>
+              {selectedTheme.name}
+            </Typography>
           </Box>
         </Box>
 
-        <Button onClick={() => setDrawerOpen((prev) => !prev)}>
+        <Button onClick={() => setDrawerOpen((prev) => !prev)} sx={{ minWidth: "auto", p: 0 }}>
           {drawerOpen ? (
             <ArrowDropUp sx={{ color: "white", fontSize: "40px" }} />
           ) : (
@@ -50,66 +46,110 @@ function ThemeSelector({
         </Button>
       </Box>
 
-      {/* Drawer */}
       <Drawer
         anchor="bottom"
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
+        PaperProps={{
+          sx: {
+            bgcolor: "#0f0f0f",
+            borderTopLeftRadius: "20px",
+            borderTopRightRadius: "20px",
+            pb: 4,
+          },
+        }}
       >
-        <Divider
-          sx={{
-            border: "grey solid 2px",
-            maxWidth: "75px",
-            height: "5px",
-            margin: "10px auto",
-            borderRadius: "20px",
-            backgroundColor: "#8c8c8c",
-          }}
-        />
-
         <Box
           sx={{
-            p: 4,
+            position: "sticky",
+            top: 0,
+            zIndex: 10,
             display: "flex",
-            gap: 3,
-            overflowX: "auto",
+            justifyContent: "center",
+            background: "#0f0f0f",
+            pt: 1.2,
+            pb: 2,
           }}
         >
-          {themes.map((theme) => (
-            <Box
-              key={theme.name}
-              onClick={() => {
-                setSelectedTheme(theme);
-                setDrawerOpen(false);
-              }}
-              sx={{
-                minWidth: 140,
-                bgcolor: "grey.900",
-                color: "white",
-                p: 2,
-                borderRadius: 4,
-                cursor: "pointer",
-                textAlign: "center",
-                "&:hover": {
-                  transform: "scale(1.05)",
-                },
-              }}
-            >
-              <img
-                src={theme.theme}
-                width={110}
-                height={80}
-                style={{ borderRadius: 10, objectFit: "cover" }}
-                alt="theme"
-              />
-              <Typography mt={1} variant="body2">
-                {theme.name}
-              </Typography>
-            </Box>
-          ))}
+          <Box
+            sx={{
+              px: 4,
+              pb: 4,
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              gap: 3,
+              flexWrap: "wrap",
+              overflowY: "auto",
+              maxHeight: "55vh",
+              scrollbarWidth: "thin",
+              scrollbarColor: "rgba(255,255,255,0.25) transparent",
+              "&::-webkit-scrollbar": {
+                width: "6px",
+              },
+              "&::-webkit-scrollbar-track": {
+                background: "transparent",
+              },
+              "&::-webkit-scrollbar-thumb": {
+                background: "rgba(255,255,255,0.25)",
+                borderRadius: "10px",
+              },
+              "&::-webkit-scrollbar-thumb:hover": {
+                background: "rgba(255,255,255,0.4)",
+              },
+            }}
+          >
+            {themes.map((theme) => (
+              <Box
+                key={theme.name}
+                onClick={() => {
+                  setSelectedTheme(theme);
+                  setDrawerOpen(false);
+                }}
+                sx={{
+                  width: 160,
+                  bgcolor:
+                    selectedTheme.name === theme.name
+                      ? "rgba(255,255,255,0.12)"
+                      : "rgba(255,255,255,0.06)",
+                  border:
+                    selectedTheme.name === theme.name
+                      ? "1px solid rgba(255,255,255,0.35)"
+                      : "1px solid rgba(255,255,255,0.12)",
+                  color: "white",
+                  marginTop: 2,
+                  p: 2,
+                  borderRadius: 4,
+                  cursor: "pointer",
+                  textAlign: "center",
+                  transition: "0.2s",
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  "&:hover": {
+                    transform: "scale(1.05)",
+                    borderColor: "rgba(255,255,255,0.35)",
+                  },
+                }}
+              >
+                <img
+                  src={theme.theme}
+                  width={120}
+                  height={90}
+                  style={{ borderRadius: 10, objectFit: "cover" }}
+                  alt="theme"
+                />
+
+                <Typography mt={1} variant="body2" sx={{ fontWeight: 600 }}>
+                  {theme.name}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
         </Box>
       </Drawer>
-    </>
+    </div>
   );
 }
 

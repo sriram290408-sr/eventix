@@ -19,7 +19,7 @@ import {
   LocalActivity,
 } from "@mui/icons-material";
 
-import { useEditor, EditorContent } from "@tiptap/react";
+import { useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 
@@ -30,6 +30,7 @@ import themes from "../context/Theme";
 import LocationSearch from "../components/LocationSearch";
 import ThemeSelector from "../components/ThemeSelector";
 import ImagePickerModal from "../components/ImagePickerModal";
+import TiptapEditor from "../components/TiptapEditor";
 
 import useCreateEventForm from "../Hooks/useCreateEvent";
 
@@ -71,7 +72,6 @@ function CreateEvent() {
     validateForm,
   } = useCreateEventForm();
 
-  // TipTap editor
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -82,7 +82,6 @@ function CreateEvent() {
     content: "",
   });
 
-  // Create event
   const handleCreateEvent = async () => {
     if (!isAuthenticated) {
       setAuthModal(true);
@@ -109,7 +108,9 @@ function CreateEvent() {
         theme: selectedTheme || null,
       };
 
-      const res = await fetch("/api/v1/events", {
+      const BASE_URL = import.meta.env.VITE_BACKEND_URL || "";
+
+      const res = await fetch(`${BASE_URL}/api/v1/events`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -136,7 +137,6 @@ function CreateEvent() {
 
   return (
     <div style={{ fontFamily: selectedTheme.font, minHeight: "100vh" }}>
-      {/* Background */}
       {selectedTheme.video && (
         <video
           key={selectedTheme.video}
@@ -163,10 +163,11 @@ function CreateEvent() {
           position: "fixed",
           width: "100%",
           height: "100%",
-          background: selectedTheme.bg,
           top: 0,
           left: 0,
           zIndex: -1,
+          pointerEvents: "none",
+          background: selectedTheme.video ? "rgba(0,0,0,0.65)" : selectedTheme.bg || "#0e0e0e",
         }}
       />
 
@@ -179,7 +180,6 @@ function CreateEvent() {
           flexWrap: "wrap",
         }}
       >
-        {/* LEFT SIDE */}
         <Box>
           <Box sx={{ position: "relative", width: 320 }}>
             <img
@@ -215,7 +215,6 @@ function CreateEvent() {
           />
         </Box>
 
-        {/* RIGHT FORM */}
         <Box sx={{ width: "100%", maxWidth: "650px" }}>
           <FormControl
             sx={{
@@ -228,10 +227,23 @@ function CreateEvent() {
               border: "1px solid rgba(255, 255, 255, 0.15)",
               boxShadow: "0 8px 32px rgba(0,0,0,0.35)",
               p: 3,
-              "&::-webkit-scrollbar": { display: "none" },
+              scrollbarWidth: "thin",
+              scrollbarColor: "rgba(255,255,255,0.3) transparent",
+              "&::-webkit-scrollbar": {
+                width: "6px",
+              },
+              "&::-webkit-scrollbar-track": {
+                background: "transparent",
+              },
+              "&::-webkit-scrollbar-thumb": {
+                background: "rgba(255,255,255,0.25)",
+                borderRadius: "10px",
+              },
+              "&::-webkit-scrollbar-thumb:hover": {
+                background: "rgba(255,255,255,0.4)",
+              },
             }}
           >
-            {/* Visibility */}
             <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
               <Button
                 onClick={(e) => setAnchorEl(e.currentTarget)}
@@ -253,11 +265,7 @@ function CreateEvent() {
               </Button>
             </Box>
 
-            <Menu
-              anchorEl={anchorEl}
-              open={openMenu}
-              onClose={() => setAnchorEl(null)}
-            >
+            <Menu anchorEl={anchorEl} open={openMenu} onClose={() => setAnchorEl(null)}>
               <MenuItem
                 onClick={() => {
                   setVisibility("Public");
@@ -277,7 +285,6 @@ function CreateEvent() {
               </MenuItem>
             </Menu>
 
-            {/* Event Name */}
             <TextField
               placeholder="Event Name"
               value={eventName}
@@ -292,7 +299,6 @@ function CreateEvent() {
             />
             <Typography color="error">{errors.eventName}</Typography>
 
-            {/* Dates */}
             <Box sx={{ display: "flex", gap: 2, mt: 3, flexWrap: "wrap" }}>
               <Box sx={{ flex: 1 }}>
                 <Typography color="white" mb={1}>
@@ -323,40 +329,16 @@ function CreateEvent() {
               </Box>
             </Box>
 
-            {/* Location Component */}
-            <LocationSearch
-              location={location}
-              setLocation={setLocation}
-            />
+            <LocationSearch location={location} setLocation={setLocation} />
             <Typography color="error">{errors.location}</Typography>
 
-            {/* Description */}
             <Box mt={4}>
               <Typography variant="h6" color="white">
                 Event Description
               </Typography>
-
-              <Box
-                sx={{
-                  mt: 1.5,
-                  borderRadius: "14px",
-                  background: "rgba(255,255,255,0.08)",
-                  border: "1px solid rgba(255,255,255,0.15)",
-                  p: 2,
-                  color: "white",
-                  minHeight: "150px",
-                  "& .ProseMirror": {
-                    outline: "none",
-                    color: "white",
-                    minHeight: "120px",
-                  },
-                }}
-              >
-                <EditorContent editor={editor} />
-              </Box>
+              <TiptapEditor editor={editor} />
             </Box>
 
-            {/* Category */}
             <Box mt={4}>
               <Typography variant="h6" color="white" mb={1}>
                 Event Category
@@ -385,7 +367,6 @@ function CreateEvent() {
               <Typography color="error">{errors.category}</Typography>
             </Box>
 
-            {/* Ticket + Approval */}
             <Box mt={4}>
               <Box
                 sx={{
@@ -405,15 +386,12 @@ function CreateEvent() {
                   <Typography color="white">Ticket Price</Typography>
                 </Box>
 
-                <Typography sx={{ color: "lightgray" }}>
-                  Free
-                </Typography>
+                <Typography sx={{ color: "lightgray" }}>Free</Typography>
 
                 <ArrowForwardIos sx={{ color: "lightgray", fontSize: 16 }} />
               </Box>
             </Box>
 
-            {/* Create Button */}
             <Box mt={4}>
               <Button
                 fullWidth
@@ -433,14 +411,12 @@ function CreateEvent() {
         </Box>
       </Box>
 
-      {/* IMAGE MODAL */}
       <ImagePickerModal
         open={openImageModal}
         onClose={() => setOpenImageModal(false)}
         setSelectedTheme={setSelectedTheme}
       />
 
-      {/* PRICING MODAL */}
       <Modal open={pricingModal} onClose={() => setPricingModal(false)}>
         <Box
           sx={{
@@ -460,13 +436,21 @@ function CreateEvent() {
           </Typography>
 
           <Typography
-            sx={{ color: "rgba(255,255,255,0.75)", fontSize: "0.92rem", mb: 1 }}
+            sx={{
+              color: "rgba(255,255,255,0.75)",
+              fontSize: "0.92rem",
+              mb: 1,
+            }}
           >
             Payments can be enabled through Stripe integration.
           </Typography>
 
           <Typography
-            sx={{ color: "rgba(255,255,255,0.7)", fontSize: "0.84rem", mb: 1.4 }}
+            sx={{
+              color: "rgba(255,255,255,0.7)",
+              fontSize: "0.84rem",
+              mb: 1.4,
+            }}
           >
             Right now, event ticket is set to Free by default.
           </Typography>
@@ -474,7 +458,11 @@ function CreateEvent() {
           <Button
             fullWidth
             variant="outlined"
-            sx={{ mt: 2, color: "white", borderColor: "rgba(255,255,255,0.4)" }}
+            sx={{
+              mt: 2,
+              color: "white",
+              borderColor: "rgba(255,255,255,0.4)",
+            }}
             onClick={() => window.open("https://stripe.com/in/pricing", "_blank")}
           >
             Connect Stripe
@@ -482,7 +470,6 @@ function CreateEvent() {
         </Box>
       </Modal>
 
-      {/* AUTH MODAL */}
       <Modal open={authModal} onClose={() => setAuthModal(false)}>
         <Box
           sx={{
@@ -498,11 +485,7 @@ function CreateEvent() {
             You need to sign in
           </Typography>
 
-          <Button
-            fullWidth
-            variant="contained"
-            onClick={() => navigate("/signin")}
-          >
+          <Button fullWidth variant="contained" onClick={() => navigate("/signin")}>
             Go to Sign In
           </Button>
         </Box>

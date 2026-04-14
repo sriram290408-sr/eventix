@@ -1,11 +1,20 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Typography } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { Category } from "../components/Categories";
+import { useAuth } from "../context/AuthContext";
 import "../styles/Discover.css";
 
 function Discover() {
   const navigate = useNavigate();
+  const { token } = useAuth();
+
+  // Redirect if not logged in
+  useEffect(() => {
+    if (!token) {
+      navigate("/signin", { replace: true });
+    }
+  }, [token, navigate]);
 
   const handleCategoryClick = (categoryTitle) => {
     navigate(`/private/discover/${encodeURIComponent(categoryTitle)}`);
@@ -18,8 +27,8 @@ function Discover() {
       </Typography>
 
       <Typography className="sub-text">
-        Explore popular events near you, browse by category, or check out some
-        of the great community calendars.
+        Explore popular events near you, browse by category, or check out some of the great
+        community calendars.
       </Typography>
 
       <Typography variant="h5" className="section-title">

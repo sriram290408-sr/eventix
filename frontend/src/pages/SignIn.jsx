@@ -1,12 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import {
-  Button,
-  Typography,
-  TextField,
-  CircularProgress,
-  Box,
-} from "@mui/material";
+import { Button, Typography, TextField, CircularProgress, Box } from "@mui/material";
 import { ExitToAppRounded } from "@mui/icons-material";
 import { useAuth } from "../context/AuthContext";
 import axios from "axios";
@@ -34,6 +28,9 @@ function SignIn() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (loading) return;
+
     setLoading(true);
     setErrorMsg("");
 
@@ -44,21 +41,25 @@ function SignIn() {
         return;
       }
 
-      const res = await axios.post("/api/v1/auth/login", {
-        email: formData.email,
-        password: formData.password,
-      });
+      const BASE_URL = import.meta.env.VITE_BACKEND_URL || "";
+
+      const res = await axios.post(
+        `${BASE_URL}/api/v1/auth/login`,
+        {
+          email: formData.email,
+          password: formData.password,
+        },
+        { withCredentials: true },
+      );
 
       console.log("LOGIN RESPONSE:", res.data);
 
-      // ✅ NEW FORMAT (responseHandler format)
       if (res.data?.success && res.data?.data?.token && res.data?.data?.user) {
         login(res.data.data.user, res.data.data.token);
         navigate("/private/event", { replace: true });
         return;
       }
 
-      // ✅ OLD FORMAT fallback
       if (res.data?.token && res.data?.user) {
         login(res.data.user, res.data.token);
         navigate("/private/event", { replace: true });
@@ -67,10 +68,13 @@ function SignIn() {
 
       setErrorMsg("Invalid response from server. Please try again.");
     } catch (err) {
+      console.log("LOGIN ERROR:", err);
+
       setErrorMsg(
         err.response?.data?.message ||
+          err.response?.data?.error ||
           err.message ||
-          "Authentication failed. Please try again."
+          "Authentication failed. Please try again.",
       );
     } finally {
       setLoading(false);
@@ -92,18 +96,11 @@ function SignIn() {
           <ExitToAppRounded className="icon-box" />
         </Button>
 
-        <Typography
-          variant="h5"
-          className="title"
-          sx={{ textAlign: "center", marginBottom: 2 }}
-        >
+        <Typography variant="h5" className="title" sx={{ textAlign: "center", marginBottom: 2 }}>
           Welcome to Eventix
         </Typography>
 
-        <Typography
-          className="subtitle"
-          sx={{ textAlign: "center", marginBottom: 3 }}
-        >
+        <Typography className="subtitle" sx={{ textAlign: "center", marginBottom: 3 }}>
           Sign in to continue.
         </Typography>
 
@@ -156,11 +153,7 @@ function SignIn() {
                 "&:hover": { backgroundColor: "#0056b3" },
               }}
             >
-              {loading ? (
-                <CircularProgress size={20} color="inherit" />
-              ) : (
-                "Sign In"
-              )}
+              {loading ? <CircularProgress size={20} color="inherit" /> : "Sign In"}
             </Button>
           </Box>
         </form>

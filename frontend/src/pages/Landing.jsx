@@ -1,4 +1,4 @@
-import { Typography, Button } from "@mui/material";
+import { Typography} from "@mui/material";
 import "../styles/Landing.css";
 import phone_dark from "../assets/phone-dark.mp4";
 

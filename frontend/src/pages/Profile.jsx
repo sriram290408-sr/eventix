@@ -8,6 +8,7 @@ import {
   IconButton,
   InputAdornment,
   Grid,
+  CircularProgress,
 } from "@mui/material";
 
 import {
@@ -114,18 +115,21 @@ function ProfilePage() {
   const [lastName, setLastName] = useState("");
   const [username, setUsername] = useState("");
   const [bio, setBio] = useState("");
-  const [avatar, setAvatar] = useState("");
+
+  const [avatarPreview, setAvatarPreview] = useState("");
+  const [avatarFile, setAvatarFile] = useState(null);
 
   const [social, setSocial] = useState({
     instagram: "",
     youtube: "",
     linkedin: "",
     website: "",
-    twitter: "",
   });
 
   const [profileLoading, setProfileLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  const BASE_URL = import.meta.env.VITE_BACKEND_URL || "";
 
   // ================= FETCH PROFILE =================
   useEffect(() => {
@@ -135,7 +139,7 @@ function ProfilePage() {
 
         setProfileLoading(true);
 
-        const res = await fetch("/api/v1/users/profile", {
+        const res = await fetch(`${BASE_URL}/api/v1/users/profile`, {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -151,36 +155,35 @@ function ProfilePage() {
           setLastName(user.lastName || "");
           setUsername(user.username || "");
           setBio(user.bio || "");
-          setAvatar(user.avatar || "");
+
+          setAvatarPreview(user.avatar || "");
 
           setSocial({
             instagram: user.socialLinks?.instagram || "",
             youtube: user.socialLinks?.youtube || "",
             linkedin: user.socialLinks?.linkedin || "",
             website: user.socialLinks?.website || "",
-            twitter: user.socialLinks?.twitter || "",
           });
 
-          // ✅ Update AuthContext user also
           updateUser(user);
         }
-      } catch {
-        // keep UI silent for now
+      } catch (err) {
+        console.log("FETCH PROFILE ERROR:", err);
       } finally {
         setProfileLoading(false);
       }
     };
 
     fetchProfile();
-  }, [token, updateUser]);
+  }, [token]);
 
   // ================= AVATAR UPLOAD =================
   const handleAvatarUpload = (e) => {
     const file = e.target.files[0];
 
     if (file) {
-      const previewUrl = URL.createObjectURL(file);
-      setAvatar(previewUrl);
+      setAvatarFile(file);
+      setAvatarPreview(URL.createObjectURL(file));
     }
   };
 
@@ -191,22 +194,24 @@ function ProfilePage() {
 
       setSaving(true);
 
-      const profileData = {
-        firstName,
-        lastName,
-        username,
-        bio,
-        avatar,
-        socialLinks: social,
-      };
+      const formData = new FormData();
+      formData.append("firstName", firstName);
+      formData.append("lastName", lastName);
+      formData.append("username", username);
+      formData.append("bio", bio);
 
-      const res = await fetch("/api/v1/users/profile", {
+      formData.append("socialLinks", JSON.stringify(social));
+
+      if (avatarFile) {
+        formData.append("avatar", avatarFile);
+      }
+
+      const res = await fetch(`${BASE_URL}/api/v1/users/profile`, {
         method: "PUT",
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(profileData),
+        body: formData,
       });
 
       const data = await res.json();
@@ -217,7 +222,8 @@ function ProfilePage() {
       } else {
         alert(data.message || "Failed to save profile");
       }
-    } catch {
+    } catch (err) {
+      console.log("SAVE PROFILE ERROR:", err);
       alert("Error saving profile");
     } finally {
       setSaving(false);
@@ -244,169 +250,168 @@ function ProfilePage() {
           Choose how you are displayed as a host or guest.
         </Typography>
 
-        {/* Name + Avatar */}
-        <Box sx={{ display: "flex", gap: 3, mb: 3 }}>
-          <Box sx={{ flex: 1 }}>
-            <Typography sx={labelSx}>First Name</Typography>
-            <TextField
-              fullWidth
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-              sx={inputSx}
-              size="small"
-            />
+        {profileLoading ? (
+          <Box sx={{ display: "flex", justifyContent: "center", mt: 5 }}>
+            <CircularProgress />
           </Box>
-
-          <Box sx={{ flex: 1 }}>
-            <Typography sx={labelSx}>Last Name</Typography>
-            <TextField
-              fullWidth
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-              sx={inputSx}
-              size="small"
-            />
-          </Box>
-
-          <Box sx={{ textAlign: "center" }}>
-            <Typography sx={labelSx}>Profile Picture</Typography>
-
-            <Box sx={{ position: "relative" }}>
-              <Avatar
-                src={avatar}
-                sx={{ width: 80, height: 80, bgcolor: "#333" }}
-              />
-
-              <label htmlFor="avatar-upload">
-                <input
-                  id="avatar-upload"
-                  type="file"
-                  hidden
-                  accept="image/*"
-                  onChange={handleAvatarUpload}
+        ) : (
+          <>
+            {/* Name + Avatar */}
+            <Box sx={{ display: "flex", gap: 3, mb: 3, flexWrap: "wrap" }}>
+              <Box sx={{ flex: 1, minWidth: "220px" }}>
+                <Typography sx={labelSx}>First Name</Typography>
+                <TextField
+                  fullWidth
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  sx={inputSx}
+                  size="small"
                 />
+              </Box>
 
-                <IconButton
-                  component="span"
-                  sx={{
-                    position: "absolute",
-                    bottom: 0,
-                    right: 0,
-                    background: "#222",
-                    color: "#fff",
-                    "&:hover": {
-                      background: "#333",
-                    },
-                  }}
-                >
-                  <CameraAlt fontSize="small" />
-                </IconButton>
-              </label>
+              <Box sx={{ flex: 1, minWidth: "220px" }}>
+                <Typography sx={labelSx}>Last Name</Typography>
+                <TextField
+                  fullWidth
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  sx={inputSx}
+                  size="small"
+                />
+              </Box>
+
+              <Box sx={{ textAlign: "center" }}>
+                <Typography sx={labelSx}>Profile Picture</Typography>
+
+                <Box sx={{ position: "relative" }}>
+                  <Avatar src={avatarPreview} sx={{ width: 80, height: 80, bgcolor: "#333" }} />
+
+                  <label htmlFor="avatar-upload">
+                    <input
+                      id="avatar-upload"
+                      type="file"
+                      hidden
+                      accept="image/*"
+                      onChange={handleAvatarUpload}
+                    />
+
+                    <IconButton
+                      component="span"
+                      sx={{
+                        position: "absolute",
+                        bottom: 0,
+                        right: 0,
+                        background: "#222",
+                        color: "#fff",
+                        "&:hover": {
+                          background: "#333",
+                        },
+                      }}
+                    >
+                      <CameraAlt fontSize="small" />
+                    </IconButton>
+                  </label>
+                </Box>
+              </Box>
             </Box>
-          </Box>
-        </Box>
 
-        {/* Username */}
-        <Box sx={{ mb: 3 }}>
-          <Typography sx={labelSx}>Username</Typography>
-          <TextField
-            fullWidth
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start" sx={{color:"white"}}>@</InputAdornment>
-              ),
-            }}
-            sx={inputSx}
-            size="small"
-          />
-        </Box>
+            {/* Username */}
+            <Box sx={{ mb: 3 }}>
+              <Typography sx={labelSx}>Username</Typography>
+              <TextField
+                fullWidth
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start" sx={{ color: "white" }}>
+                      @
+                    </InputAdornment>
+                  ),
+                }}
+                sx={inputSx}
+                size="small"
+              />
+            </Box>
 
-        {/* Bio */}
-        <Box sx={{ mb: 4 }}>
-          <Typography sx={labelSx}>Bio</Typography>
-          <TextField
-            fullWidth
-            multiline
-            rows={3}
-            value={bio}
-            onChange={(e) => setBio(e.target.value)}
-            sx={inputSx}
-          />
-        </Box>
+            {/* Bio */}
+            <Box sx={{ mb: 4 }}>
+              <Typography sx={labelSx}>Bio</Typography>
+              <TextField
+                fullWidth
+                multiline
+                rows={3}
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                sx={inputSx}
+              />
+            </Box>
 
-        {/* Social */}
-        <Typography sx={{ color: "#fff", mb: 2 }}>Social Links</Typography>
+            {/* Social */}
+            <Typography sx={{ color: "#fff", mb: 2 }}>Social Links</Typography>
 
-        <Grid container spacing={2}>
-          <Grid item xs={12} sm={6}>
-            <SocialField
-              prefix="instagram.com/"
-              placeholder="username"
-              icon={<Instagram />}
-              value={social.instagram}
-              onChange={(e) =>
-                setSocial({ ...social, instagram: e.target.value })
-              }
-            />
-          </Grid>
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6}>
+                <SocialField
+                  prefix="instagram.com/"
+                  placeholder="username"
+                  icon={<Instagram />}
+                  value={social.instagram}
+                  onChange={(e) => setSocial({ ...social, instagram: e.target.value })}
+                />
+              </Grid>
 
-          <Grid item xs={12} sm={6}>
-            <SocialField
-              prefix="youtube.com/@"
-              placeholder="username"
-              icon={<YouTube />}
-              value={social.youtube}
-              onChange={(e) =>
-                setSocial({ ...social, youtube: e.target.value })
-              }
-            />
-          </Grid>
+              <Grid item xs={12} sm={6}>
+                <SocialField
+                  prefix="youtube.com/@"
+                  placeholder="username"
+                  icon={<YouTube />}
+                  value={social.youtube}
+                  onChange={(e) => setSocial({ ...social, youtube: e.target.value })}
+                />
+              </Grid>
 
-          <Grid item xs={12} sm={6}>
-            <SocialField
-              prefix="linkedin.com/in/"
-              placeholder="username"
-              icon={<LinkedIn />}
-              value={social.linkedin}
-              onChange={(e) =>
-                setSocial({ ...social, linkedin: e.target.value })
-              }
-            />
-          </Grid>
+              <Grid item xs={12} sm={6}>
+                <SocialField
+                  prefix="linkedin.com/in/"
+                  placeholder="username"
+                  icon={<LinkedIn />}
+                  value={social.linkedin}
+                  onChange={(e) => setSocial({ ...social, linkedin: e.target.value })}
+                />
+              </Grid>
 
-          <Grid item xs={12} sm={6}>
-            <SocialField
-              prefix=""
-              placeholder="Website"
-              icon={<Language />}
-              value={social.website}
-              onChange={(e) =>
-                setSocial({ ...social, website: e.target.value })
-              }
-            />
-          </Grid>
-        </Grid>
+              <Grid item xs={12} sm={6}>
+                <SocialField
+                  prefix=""
+                  placeholder="Website"
+                  icon={<Language />}
+                  value={social.website}
+                  onChange={(e) => setSocial({ ...social, website: e.target.value })}
+                />
+              </Grid>
+            </Grid>
 
-        <Button
-          disabled={saving || profileLoading}
-          onClick={handleSave}
-          startIcon={<AccountCircle />}
-          sx={{
-            mt: 4,
-            background: "#fff",
-            color: "#000",
-            fontWeight: "600",
-            px: 3,
-            borderRadius: "10px",
-            "&:hover": {
-              background: "#ddd",
-            },
-          }}
-        >
-          {saving ? "Saving..." : "Save Changes"}
-        </Button>
+            <Button
+              disabled={saving}
+              onClick={handleSave}
+              startIcon={<AccountCircle />}
+              sx={{
+                mt: 4,
+                background: "#fff",
+                color: "#000",
+                fontWeight: "600",
+                px: 3,
+                borderRadius: "10px",
+                "&:hover": {
+                  background: "#ddd",
+                },
+              }}
+            >
+              {saving ? "Saving..." : "Save Changes"}
+            </Button>
+          </>
+        )}
       </Box>
     </Box>
   );

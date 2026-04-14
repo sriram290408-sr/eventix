@@ -1,17 +1,10 @@
 import React, { useEffect, useState } from "react";
 import Typography from "@mui/material/Typography";
-import { Link } from "react-router-dom";
-import {
-  ToggleButtonGroup,
-  ToggleButton,
-  Button,
-  Box,
-  CircularProgress,
-} from "@mui/material";
+import { Link, useNavigate } from "react-router-dom";
+import { ToggleButtonGroup, ToggleButton, Button, Box, CircularProgress } from "@mui/material";
 import EventNoteOutlinedIcon from "@mui/icons-material/EventNoteOutlined";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
 import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
 import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
 
@@ -35,7 +28,12 @@ function AttendingSmallCard({ event, onClick }) {
           "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=600&auto=format"
         }
         alt={event.title}
-        style={{ width: "100%", height: 150, objectFit: "cover", display: "block" }}
+        style={{
+          width: "100%",
+          height: 150,
+          objectFit: "cover",
+          display: "block",
+        }}
       />
 
       <div style={{ padding: 12 }}>
@@ -62,11 +60,13 @@ function AttendingSmallCard({ event, onClick }) {
           }}
         >
           <CalendarTodayOutlinedIcon sx={{ fontSize: 15 }} />
-          {new Date(event.startDate).toLocaleDateString("en-IN", {
-            day: "2-digit",
-            month: "short",
-            year: "numeric",
-          })}
+          {event.startDate
+            ? new Date(event.startDate).toLocaleDateString("en-IN", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+              })
+            : "No Date"}
         </div>
 
         <div
@@ -95,10 +95,10 @@ function Event() {
   const { token } = useAuth();
   const navigate = useNavigate();
 
+  const BASE_URL = import.meta.env.VITE_BACKEND_URL || "";
+
   const handleChange = (_, newView) => {
-    if (newView !== null) {
-      setView(newView);
-    }
+    if (newView !== null) setView(newView);
   };
 
   // Fetch attending events
@@ -107,28 +107,41 @@ function Event() {
       setLoading(true);
       setErrorMsg("");
 
-      const res = await axios.get("/api/v1/events/attending", {
+      const res = await axios.get(`${BASE_URL}/api/v1/events/attending`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
-      // Adjust based on your backend response structure
-      const data = res.data.data || res.data;
+      console.log("ATTENDING RESPONSE:", res.data);
 
-      setEvents(data || []);
+      if (res.data?.success) {
+        setEvents(res.data.data || []);
+      } else {
+        setEvents(res.data || []);
+      }
     } catch (err) {
-      setErrorMsg(
-        err.response?.data?.message || "Failed to load attending events",
-      );
+      console.error("Attending Events Error:", err);
+
+      if (err.response?.status === 401) {
+        navigate("/signin", { replace: true });
+        return;
+      }
+
+      setErrorMsg(err.response?.data?.message || "Failed to load attending events");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    if (!token) {
+      navigate("/signin", { replace: true });
+      return;
+    }
+
     fetchAttendingEvents();
-  }, []);
+  }, [token]);
 
   // Filter upcoming/past
   const filteredEvents = events.filter((event) => {
@@ -187,9 +200,7 @@ function Event() {
             <CircularProgress />
           </Box>
         ) : errorMsg ? (
-          <Typography sx={{ textAlign: "center", color: "red", mt: 5 }}>
-            {errorMsg}
-          </Typography>
+          <Typography sx={{ textAlign: "center", color: "red", mt: 5 }}>{errorMsg}</Typography>
         ) : filteredEvents.length === 0 ? (
           <div
             className="empty-state"
@@ -204,11 +215,11 @@ function Event() {
           >
             <EventNoteOutlinedIcon className="empty-icon" />
 
-            <Typography variant="h6" sx={{ fontSize: "22px" }}>
+            <Typography variant="h6" sx={{ fontSize: "22px", color: "white" }}>
               No {view === "upcoming" ? "Upcoming" : "Past"} Events
             </Typography>
 
-            <Typography sx={{ fontSize: "14px" }}>
+            <Typography sx={{ fontSize: "14px", color: "gray" }}>
               You have not joined any events yet.
             </Typography>
 
@@ -219,6 +230,7 @@ function Event() {
                 color: "white",
                 fontWeight: "500",
                 backgroundColor: "#007bff",
+                "&:hover": { backgroundColor: "#0056b3" },
               }}
             >
               Explore Events

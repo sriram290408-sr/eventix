@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Box, Chip, Typography } from "@mui/material";
+import { Box, Chip, Typography, CircularProgress } from "@mui/material";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate, useParams } from "react-router-dom";
@@ -7,7 +7,11 @@ import { useNavigate, useParams } from "react-router-dom";
 function formatCardDate(dateValue) {
   const d = dateValue ? new Date(dateValue) : null;
   if (!d || Number.isNaN(d.getTime())) return "";
-  return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;
+  return d.toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
 }
 
 function getGoogleMapsUrl({ location, locationUrl }) {
@@ -23,6 +27,7 @@ function SmallEventCard({ event, onClick }) {
   const status = event?.participationStatus;
   const showStatus = status === "approved" || status === "rejected";
   const dateLabel = formatCardDate(event?.startDate);
+
   const mapsHref = getGoogleMapsUrl({
     location: event?.location || "",
     locationUrl: event?.locationUrl || "",
@@ -80,10 +85,7 @@ function SmallEventCard({ event, onClick }) {
               sx={{
                 color: "white",
                 fontWeight: 800,
-                background:
-                  status === "approved"
-                    ? "rgba(34,197,94,0.18)"
-                    : "rgba(239,68,68,0.18)",
+                background: status === "approved" ? "rgba(34,197,94,0.18)" : "rgba(239,68,68,0.18)",
                 border: "1px solid rgba(255,255,255,0.18)",
               }}
             />
@@ -126,51 +128,55 @@ function CategoryEvents() {
   const { token } = useAuth();
   const navigate = useNavigate();
 
-  const fetchCategoryEvents = async () => {
-    try {
-      setLoading(true);
-
-      const res = await axios.get(
-        `/api/v1/events/discover?category=${decodedCategory}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-
-      if (res.data.success) {
-        setEvents(res.data.data || []);
-      }
-    } catch {
-      setEvents([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const fetchCategoryEvents = async () => {
+      try {
+        if (!token) return;
+
+        setLoading(true);
+
+        const res = await axios.get(
+          `/api/v1/events/discover?category=${encodeURIComponent(decodedCategory)}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+
+        if (res.data?.success) {
+          setEvents(res.data.data || []);
+        } else {
+          setEvents([]);
+        }
+      } catch {
+        setEvents([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchCategoryEvents();
-  }, [decodedCategory]);
+  }, [decodedCategory, token]);
 
   return (
-    <div style={{ padding: "30px" }}>
+    <Box sx={{ padding: "30px" }}>
       <Typography variant="h4" sx={{ color: "white", mb: 3 }}>
         {decodedCategory} Events
       </Typography>
 
       {loading ? (
-        <Typography sx={{ color: "white" }}>Loading events...</Typography>
+        <Box sx={{ display: "flex", justifyContent: "center", mt: 6 }}>
+          <CircularProgress />
+        </Box>
       ) : events.length === 0 ? (
-        <Typography sx={{ color: "gray" }}>
-          No events found in {decodedCategory}.
-        </Typography>
+        <Typography sx={{ color: "gray" }}>No events found in {decodedCategory}.</Typography>
       ) : (
-        <div
-          style={{
+        <Box
+          sx={{
             display: "grid",
             gridTemplateColumns: "repeat(auto-fill, minmax(320px, 360px))",
-            gap: 18,
+            gap: 2.2,
             justifyContent: "start",
           }}
         >
@@ -181,9 +187,9 @@ function CategoryEvents() {
               onClick={() => navigate(`/private/event/${event.slug}`)}
             />
           ))}
-        </div>
+        </Box>
       )}
-    </div>
+    </Box>
   );
 }
 

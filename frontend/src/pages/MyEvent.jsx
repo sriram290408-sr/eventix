@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Box, Typography, CircularProgress } from "@mui/material";
 import { useAuth } from "../context/AuthContext";
 import axios from "axios";
@@ -11,28 +11,43 @@ function MyEvent() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  const BASE_URL = import.meta.env.VITE_BACKEND_URL || "";
+
   const fetchMyEvents = async () => {
     try {
       setLoading(true);
 
-      const res = await axios.get("/api/v1/events/my-events", {
+      const res = await axios.get(`${BASE_URL}/api/v1/events/my-events`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
-      if (res.data.success) {
-        setEvents(res.data.data || []);
+      console.log("MY EVENTS RESPONSE:", res.data);
+
+      if (res.data?.success) {
+        setEvents(res.data?.data || res.data?.data?.events || []);
+      } else {
+        setEvents([]);
       }
     } catch (err) {
       console.error("My Events Fetch Error:", err);
+
+      if (err.response?.status === 401) {
+        navigate("/signin", { replace: true });
+      }
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (token) fetchMyEvents();
+    if (!token) {
+      navigate("/signin", { replace: true });
+      return;
+    }
+
+    fetchMyEvents();
   }, [token]);
 
   return (
@@ -101,11 +116,13 @@ function MyEvent() {
 
               <Typography sx={{ color: "gray", fontSize: "13px", mt: 0.5 }}>
                 {event.category} •{" "}
-                {new Date(event.startDate).toLocaleDateString("en-IN")}
+                {event.startDate
+                  ? new Date(event.startDate).toLocaleDateString("en-IN")
+                  : "No Date"}
               </Typography>
 
               <Typography sx={{ color: "#64a0fa", fontSize: "13px", mt: 0.5 }}>
-                {event.location}
+                {event.location || "No Location"}
               </Typography>
             </Box>
           ))}
