@@ -1,0 +1,33 @@
+body {
+  background-color: black;
+  color: white;
+  margin: 0;
+  font-family: sans-serif, "inter";
+}
+
+body::before {
+  content: "normal";
+  position: fixed;
+  top: -120px;
+  left: 0;
+  right: 0;
+  width: 100vw;
+  height: 300px;
+  z-index: 0;
+
+  background: radial-gradient(
+    ellipse at top,
+    rgba(0, 102, 255, 0.7) 0%,
+    rgba(0, 102, 254, 0.4) 40%,
+    rgba(0, 54, 116, 0) 80%
+  );
+  filter: blur(150px);
+}
+
+@media (max-width: 768px) {
+  body::before {
+    top: -60px;
+    height: 220px;
+    filter: blur(45px);
+  }
+}

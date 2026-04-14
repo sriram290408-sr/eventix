@@ -1,0 +1,156 @@
+.event-card-discover {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: 0.25s ease;
+  position: relative;
+}
+
+.event-card-discover:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 50px rgba(0, 107, 222, 0.2);
+  border-color: rgba(100, 160, 250, 0.35);
+}
+
+.card-img-wrapper {
+  position: relative;
+  height: 190px;
+  overflow: hidden;
+}
+
+.card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: 0.4s ease;
+}
+
+.event-card-discover:hover .card-img {
+  transform: scale(1.06);
+}
+
+.card-img-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, transparent 40%, rgba(10, 14, 26, 0.85));
+}
+
+.card-category-badge {
+  position: absolute !important;
+  top: 12px;
+  left: 12px;
+  background: rgba(0, 0, 0, 0.55) !important;
+  color: #64a0fa !important;
+  border: 1px solid rgba(100, 160, 250, 0.4) !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  backdrop-filter: blur(6px);
+}
+
+.card-price-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(0, 107, 222, 0.9);
+  color: white;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.copy-btn {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: white;
+  padding: 6px 10px;
+  font-size: 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  transition: 0.2s ease;
+  backdrop-filter: blur(6px);
+}
+
+.copy-btn:hover {
+  background: rgba(100, 160, 250, 0.2);
+  border-color: rgba(100, 160, 250, 0.5);
+}
+
+.card-body {
+  padding: 20px;
+}
+
+.card-event-title {
+  font-size: 17px !important;
+  font-weight: 700 !important;
+  color: white !important;
+  margin-bottom: 14px !important;
+}
+
+.card-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.card-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #8a9bb5;
+  font-size: 13px;
+}
+
+.card-meta-row strong {
+  color: #c0cddf;
+}
+
+.meta-icon {
+  font-size: 15px !important;
+  color: #64a0fa;
+}
+
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.approval-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.approval-required {
+  background: rgba(239, 68, 68, 0.1);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+.open-badge {
+  background: rgba(34, 197, 94, 0.1);
+  color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.25);
+}
+
+.view-btn {
+  background: none;
+  border: none;
+  color: #64a0fa;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}

@@ -1,0 +1,92 @@
+.discover-container {
+  max-width: 1300px;
+  margin: 60px auto;
+  padding: 0 20px;
+}
+
+/* Titles */
+.main-title {
+  font-weight: 800 !important;
+  margin-bottom: 10px !important;
+  color: white;
+}
+
+.sub-text {
+  color: gray;
+  margin-bottom: 40px !important;
+  max-width: 650px;
+}
+
+.section-title {
+  font-weight: 700 !important;
+  margin-bottom: 25px !important;
+  color: white;
+}
+
+/* ✅ 3 Cards per Row Grid */
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px;
+  margin-bottom: 80px; /* ✅ footer will not disturb */
+}
+
+/* Responsive */
+@media (max-width: 1000px) {
+  .category-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 650px) {
+  .category-grid {
+    grid-template-columns: repeat(1, 1fr);
+  }
+}
+
+/* Card UI */
+.category-card {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 22px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  cursor: pointer;
+  transition: 0.25s ease;
+  min-height: 120px; /* ✅ equal height */
+}
+
+.category-card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(100, 160, 250, 0.5);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+}
+
+/* Icon Circle */
+.category-icon {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Text */
+.category-text h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: white;
+  margin: 0;
+}
+
+.category-text p {
+  font-size: 13px;
+  color: gray;
+  margin: 6px 0 0;
+  line-height: 1.4;
+}

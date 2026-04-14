@@ -1,0 +1,54 @@
+.signin-page {
+  height: 80vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.signin-card {
+  width: 350px;
+  padding: 25px;
+  border-radius: 12px;
+  background: #1a1a1a;
+
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.icon-box {
+  background: #2a2a2a;
+  padding: 12px;
+  border-radius: 50%;
+  color: white;
+  width: fit-content;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: grey;
+}
+
+.form-box {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.toggle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.switch {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.google-btn {
+  height: 45px;
+}
