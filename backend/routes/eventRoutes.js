@@ -14,11 +14,7 @@ const router = express.Router();
 router.get("/discover", protect, eventController.getDiscoverEvents);
 
 // Get Events by Category
-router.get(
-  "/category/:category",
-  protect,
-  eventController.getEventsByCategory
-);
+router.get("/category/:category", protect, eventController.getEventsByCategory);
 
 // Create Event
 router.post(
@@ -62,7 +58,7 @@ router.put(
   participationController.rejectRequest
 );
 
-// Approved guests list
+// Guests list
 router.get(
   "/:id/guests",
   protect,
@@ -70,7 +66,7 @@ router.get(
   participationController.getGuests
 );
 
-// Get Event by slug (keep this at bottom)
+// Get Event by slug
 router.get("/:slug", protect, eventController.getEventBySlug);
 
 // Update/Delete Event

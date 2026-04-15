@@ -270,6 +270,7 @@ export default {
   getDiscoverEvents,
   getEventBySlug,
   getMyEvents,
+  getEventsByCategory,
   getAttendingEvents,
   updateEvent,
   deleteEvent,
