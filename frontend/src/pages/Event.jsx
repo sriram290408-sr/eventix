@@ -95,13 +95,12 @@ function Event() {
   const { token } = useAuth();
   const navigate = useNavigate();
 
-  const BASE_URL = import.meta.env.BACKEND_URL || "";
+  const BASE_URL = import.meta.env.VITE_BACKEND_URL || "";
 
   const handleChange = (_, newView) => {
     if (newView !== null) setView(newView);
   };
 
-  // Fetch attending events
   const fetchAttendingEvents = async () => {
     try {
       setLoading(true);
@@ -113,12 +112,10 @@ function Event() {
         },
       });
 
-      console.log("ATTENDING RESPONSE:", res.data);
-
       if (res.data?.success) {
         setEvents(res.data.data || []);
       } else {
-        setEvents(res.data || []);
+        setEvents([]);
       }
     } catch (err) {
       console.error("Attending Events Error:", err);
@@ -143,7 +140,6 @@ function Event() {
     fetchAttendingEvents();
   }, [token]);
 
-  // Filter upcoming/past
   const filteredEvents = events.filter((event) => {
     if (!event.startDate) return false;
 

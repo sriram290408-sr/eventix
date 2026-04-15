@@ -11,7 +11,7 @@ function MyEvent() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const BASE_URL = import.meta.env.BACKEND_URL || "";
+  const BASE_URL = import.meta.env.VITE_BACKEND_URL || "";
 
   const fetchMyEvents = async () => {
     try {
@@ -22,8 +22,6 @@ function MyEvent() {
           Authorization: `Bearer ${token}`,
         },
       });
-
-      console.log("MY EVENTS RESPONSE:", res.data);
 
       if (res.data?.success) {
         setEvents(res.data?.data || res.data?.data?.events || []);

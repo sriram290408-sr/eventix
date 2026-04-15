@@ -41,7 +41,7 @@ function SignIn() {
         return;
       }
 
-      const BASE_URL = import.meta.env.BACKEND_URL || "";
+      const BASE_URL = import.meta.env.VITE_BACKEND_URL || "";
 
       const res = await axios.post(
         `${BASE_URL}/api/v1/auth/login`,
@@ -51,8 +51,6 @@ function SignIn() {
         },
         { withCredentials: true },
       );
-
-      console.log("LOGIN RESPONSE:", res.data);
 
       if (res.data?.success && res.data?.data?.token && res.data?.data?.user) {
         login(res.data.data.user, res.data.data.token);
