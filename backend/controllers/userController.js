@@ -4,8 +4,8 @@ import responseHandler from "../utils/responseHandler.js";
 
 const { successResponse, errorResponse } = responseHandler;
 
-// ====================== GET PROFILE ======================
-export const getProfile = async (req, res, next) => {
+// GET PROFILE
+export const getProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).select("-password -__v");
 
@@ -15,14 +15,25 @@ export const getProfile = async (req, res, next) => {
 
     return successResponse(res, user);
   } catch (error) {
-    next(error);
+    return errorResponse(res, "Failed to fetch profile", "ERROR", 500, error);
   }
 };
 
-// ====================== UPDATE PROFILE ======================
-export const updateProfile = async (req, res, next) => {
+// UPDATE PROFILE
+export const updateProfile = async (req, res) => {
   try {
-    const { firstName, lastName, username, bio, avatar, socialLinks } = req.body;
+    const { firstName, lastName, username, bio } = req.body;
+
+    let socialLinks = req.body.socialLinks;
+
+    // If socialLinks comes as string (FormData), parse it
+    if (socialLinks && typeof socialLinks === "string") {
+      try {
+        socialLinks = JSON.parse(socialLinks);
+      } catch (err) {
+        socialLinks = null;
+      }
+    }
 
     const user = await User.findById(req.user._id);
 
@@ -30,11 +41,12 @@ export const updateProfile = async (req, res, next) => {
       return errorResponse(res, "User not found", "NOT_FOUND", 404);
     }
 
+    // Update basic fields
     if (firstName !== undefined) user.firstName = firstName.trim();
     if (lastName !== undefined) user.lastName = lastName.trim();
     if (bio !== undefined) user.bio = bio;
-    if (avatar !== undefined) user.avatar = avatar;
 
+    // Username check
     if (username && username !== user.username) {
       const normalizedUsername = username.toLowerCase().trim();
 
@@ -44,25 +56,25 @@ export const updateProfile = async (req, res, next) => {
       });
 
       if (existing) {
-        return errorResponse(
-          res,
-          "Username is already taken",
-          "VALIDATION_ERROR",
-          400
-        );
+        return errorResponse(res, "Username already taken", "VALIDATION_ERROR", 400);
       }
 
       user.username = normalizedUsername;
     }
 
+    // Update social links
     if (socialLinks && typeof socialLinks === "object") {
       user.socialLinks = {
-        twitter: socialLinks.twitter ?? user.socialLinks?.twitter ?? "",
-        linkedin: socialLinks.linkedin ?? user.socialLinks?.linkedin ?? "",
-        instagram: socialLinks.instagram ?? user.socialLinks?.instagram ?? "",
-        youtube: socialLinks.youtube ?? user.socialLinks?.youtube ?? "",
-        website: socialLinks.website ?? user.socialLinks?.website ?? "",
+        instagram: socialLinks.instagram || "",
+        youtube: socialLinks.youtube || "",
+        linkedin: socialLinks.linkedin || "",
+        website: socialLinks.website || "",
       };
+    }
+
+    // Avatar file upload (if using multer)
+    if (req.file) {
+      user.avatar = req.file.path; 
     }
 
     await user.save();
@@ -73,6 +85,6 @@ export const updateProfile = async (req, res, next) => {
 
     return successResponse(res, updatedUser);
   } catch (error) {
-    next(error);
+    return errorResponse(res, "Failed to update profile", "ERROR", 500, error);
   }
 };

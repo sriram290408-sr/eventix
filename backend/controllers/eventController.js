@@ -36,7 +36,7 @@ const addParticipationStatusToEvents = async (events, userId) => {
   }));
 };
 
-// ====================== CREATE EVENT ======================
+// CREATE EVENT
 const createEvent = async (req, res, next) => {
   try {
     const {
@@ -86,7 +86,7 @@ const createEvent = async (req, res, next) => {
   }
 };
 
-// ====================== GET DISCOVER EVENTS ======================
+// GET DISCOVER EVENTS
 const getDiscoverEvents = async (req, res) => {
   try {
     const { category } = req.query;
@@ -108,7 +108,7 @@ const getDiscoverEvents = async (req, res) => {
   }
 };
 
-// ====================== GET EVENT BY SLUG ======================
+// GET EVENT BY SLUG
 const getEventBySlug = async (req, res) => {
   try {
     const event = await Event.findOne({
@@ -136,7 +136,7 @@ const getEventBySlug = async (req, res) => {
   }
 };
 
-// ====================== GET MY EVENTS ======================
+// GET MY EVENTS
 const getMyEvents = async (req, res) => {
   try {
     const events = await Event.find({
@@ -152,7 +152,31 @@ const getMyEvents = async (req, res) => {
   }
 };
 
-// ====================== GET ATTENDING EVENTS ======================
+// GET EVENTS BY CATEGORY 
+const getEventsByCategory = async (req, res) => {
+  try {
+    const { category } = req.params;
+
+    const events = await Event.find({
+      category,
+      isDeleted: false,
+      status: "published",
+    })
+      .sort({ startDate: 1 })
+      .populate("creator", "firstName lastName username email avatar");
+
+    const enrichedEvents = await addParticipationStatusToEvents(
+      events,
+      req.user._id
+    );
+
+    return successResponse(res, enrichedEvents);
+  } catch (err) {
+    return errorResponse(res, "Failed to fetch category events", "ERROR", 500);
+  }
+};
+
+// GET ATTENDING EVENTS
 const getAttendingEvents = async (req, res) => {
   try {
     const attending = await Participation.find({
@@ -176,7 +200,7 @@ const getAttendingEvents = async (req, res) => {
   }
 };
 
-// ====================== UPDATE EVENT ======================
+// UPDATE EVENT
 const updateEvent = async (req, res, next) => {
   try {
     const event = req.event;
@@ -223,7 +247,7 @@ const updateEvent = async (req, res, next) => {
   }
 };
 
-// ====================== DELETE EVENT ======================
+// DELETE EVENT
 const deleteEvent = async (req, res, next) => {
   try {
     const event = req.event;

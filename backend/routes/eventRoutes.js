@@ -6,13 +6,19 @@ import participationController from "../controllers/participationController.js";
 import { protect } from "../middlewares/authMiddleware.js";
 import { isEventAdmin } from "../middlewares/roleMiddleware.js";
 import { eventCreationLimiter } from "../middlewares/rateLimitMiddleware.js";
-
 import { validateEventCreation } from "../middlewares/validationMiddleware.js";
 
 const router = express.Router();
 
 // Discover Events
 router.get("/discover", protect, eventController.getDiscoverEvents);
+
+// Get Events by Category
+router.get(
+  "/category/:category",
+  protect,
+  eventController.getEventsByCategory
+);
 
 // Create Event
 router.post(
@@ -28,13 +34,6 @@ router.get("/my-events", protect, eventController.getMyEvents);
 
 // Attending Events
 router.get("/attending", protect, eventController.getAttendingEvents);
-
-// Get Event by slug
-router.get("/:slug", protect, eventController.getEventBySlug);
-
-// Update/Delete Event
-router.put("/:id", protect, isEventAdmin, eventController.updateEvent);
-router.delete("/:id", protect, isEventAdmin, eventController.deleteEvent);
 
 // Join Event
 router.post("/:id/join", protect, participationController.requestToJoin);
@@ -62,5 +61,20 @@ router.put(
   isEventAdmin,
   participationController.rejectRequest
 );
+
+// Approved guests list
+router.get(
+  "/:id/guests",
+  protect,
+  isEventAdmin,
+  participationController.getGuests
+);
+
+// Get Event by slug (keep this at bottom)
+router.get("/:slug", protect, eventController.getEventBySlug);
+
+// Update/Delete Event
+router.put("/:id", protect, isEventAdmin, eventController.updateEvent);
+router.delete("/:id", protect, isEventAdmin, eventController.deleteEvent);
 
 export default router;
