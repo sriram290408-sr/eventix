@@ -1,7 +1,7 @@
 import User from "../models/User.js";
-import logger from "../utils/logger.js";
 import responseHandler from "../utils/responseHandler.js";
 import { uploadAvatarImage } from "../utils/cloudinary.js";
+import logger from "../utils/logger.js";
 
 const { successResponse, errorResponse } = responseHandler;
 
@@ -11,70 +11,37 @@ export const getProfile = async (req, res) => {
     const user = await User.findById(req.user._id).select("-password -__v");
 
     if (!user) {
-      return errorResponse(res, "User not found", "NOT_FOUND", 404);
+      return errorResponse(res, "User not found", 404);
     }
 
     return successResponse(res, user);
   } catch (error) {
-    return errorResponse(res, "Failed to fetch profile", "ERROR", 500, error);
+    return errorResponse(res, "Failed to fetch profile", 500, error);
   }
 };
 
 // UPDATE PROFILE
 export const updateProfile = async (req, res) => {
   try {
-    const { firstName, lastName, username, bio } = req.body;
-
-    let socialLinks = req.body.socialLinks;
-
-    if (socialLinks && typeof socialLinks === "string") {
-      try {
-        socialLinks = JSON.parse(socialLinks);
-      } catch {
-        socialLinks = null;
-      }
-    }
+    const { firstName, lastName, bio, socialLinks } = req.body;
 
     const user = await User.findById(req.user._id);
 
     if (!user) {
-      return errorResponse(res, "User not found", "NOT_FOUND", 404);
+      return errorResponse(res, "User not found", 404);
     }
 
+    // Update fields
     if (firstName !== undefined) user.firstName = firstName.trim();
     if (lastName !== undefined) user.lastName = lastName.trim();
     if (bio !== undefined) user.bio = bio;
 
-    if (username && username !== user.username) {
-      const normalizedUsername = username.toLowerCase().trim();
-
-      const existing = await User.findOne({
-        username: normalizedUsername,
-        _id: { $ne: user._id },
-      });
-
-      if (existing) {
-        return errorResponse(
-          res,
-          "Username already taken",
-          "VALIDATION_ERROR",
-          400
-        );
-      }
-
-      user.username = normalizedUsername;
+    // Update social links
+    if (socialLinks) {
+      user.socialLinks = socialLinks;
     }
 
-    if (socialLinks && typeof socialLinks === "object") {
-      user.socialLinks = {
-        instagram: socialLinks.instagram || "",
-        youtube: socialLinks.youtube || "",
-        linkedin: socialLinks.linkedin || "",
-        website: socialLinks.website || "",
-      };
-    }
-
-    // Upload avatar to cloudinary
+    // Upload avatar
     if (req.file) {
       const avatarUrl = await uploadAvatarImage(req.file);
       if (avatarUrl) user.avatar = avatarUrl;
@@ -88,6 +55,6 @@ export const updateProfile = async (req, res) => {
 
     return successResponse(res, updatedUser);
   } catch (error) {
-    return errorResponse(res, "Failed to update profile", "ERROR", 500, error);
+    return errorResponse(res, "Failed to update profile", 500, error);
   }
 };

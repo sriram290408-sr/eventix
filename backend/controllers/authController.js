@@ -4,71 +4,28 @@ import responseHandler from "../utils/responseHandler.js";
 
 const { errorResponse, successResponse } = responseHandler;
 
-const normalizeEmail = (email) => String(email || "").toLowerCase().trim();
-
-const buildUsernameFromEmail = (email) => {
-  const base = normalizeEmail(email).split("@")[0] || "user";
-  return base.replace(/[^a-z0-9_]/gi, "") || "user";
-};
-
-const findAvailableUsername = async (baseUsername) => {
-  const MAX_ATTEMPTS = 10;
-
-  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt += 1) {
-    const candidate =
-      attempt === 0
-        ? baseUsername.toLowerCase()
-        : `${baseUsername.toLowerCase()}${Math.floor(
-          Math.random() * 9000 + 1000
-        )}`;
-
-    // eslint-disable-next-line no-await-in-loop
-    const exists = await User.findOne({ username: candidate });
-    if (!exists) return candidate;
-  }
-
-  return null;
-};
-
-// ===================== REGISTER =====================
+// REGISTER
 export const registerUser = async (req, res) => {
   try {
     const { firstName, lastName, email, password } = req.body;
 
-    if (!email || !password) {
-      return errorResponse(
-        res,
-        "Email and password are required",
-        "VALIDATION_ERROR",
-        400
-      );
+    // Validation
+    if (!firstName || !email || !password) {
+      return errorResponse(res, "First name, Email and Password are required", 400);
     }
 
-    const normalizedEmail = normalizeEmail(email);
-
-    const existingUser = await User.findOne({ email: normalizedEmail });
+    // Check existing user
+    const existingUser = await User.findOne({ email: email.toLowerCase() });
 
     if (existingUser) {
-      return errorResponse(res, "User already exists", "ALREADY_EXISTS", 409);
+      return errorResponse(res, "User already exists", 409);
     }
 
-    const baseUsername = buildUsernameFromEmail(normalizedEmail);
-    const availableUsername = await findAvailableUsername(baseUsername);
-
-    if (!availableUsername) {
-      return errorResponse(
-        res,
-        "Unable to generate a unique username",
-        "SERVER_ERROR",
-        500
-      );
-    }
-
+    // Create user
     const user = await User.create({
-      firstName: firstName?.trim?.() || "",
-      lastName: lastName?.trim?.() || "",
-      username: availableUsername,
-      email: normalizedEmail,
+      firstName,
+      lastName,
+      email: email.toLowerCase(),
       password,
     });
 
@@ -80,7 +37,6 @@ export const registerUser = async (req, res) => {
           _id: user._id,
           firstName: user.firstName,
           lastName: user.lastName,
-          username: user.username,
           email: user.email,
           avatar: user.avatar,
         },
@@ -88,54 +44,35 @@ export const registerUser = async (req, res) => {
       201
     );
   } catch (error) {
-    return errorResponse(
-      res,
-      error.message || "Registration failed",
-      "ERROR",
-      500,
-      error
-    );
+    return errorResponse(res, error.message || "Registration failed", 500);
   }
 };
 
-// ===================== LOGIN =====================
+// LOGIN
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    // Validation
     if (!email || !password) {
-      return errorResponse(
-        res,
-        "Email and password are required",
-        "VALIDATION_ERROR",
-        400
-      );
+      return errorResponse(res, "Email and password are required", 400);
     }
 
-    const normalizedEmail = normalizeEmail(email);
-
-    const user = await User.findOne({ email: normalizedEmail });
+    // Find user
+    const user = await User.findOne({ email: email.toLowerCase() });
 
     if (!user) {
-      return errorResponse(
-        res,
-        "Invalid email or password",
-        "INVALID_CREDENTIALS",
-        401
-      );
+      return errorResponse(res, "Invalid email or password", 401);
     }
 
+    // Check password
     const isMatch = await user.matchPassword(password);
 
     if (!isMatch) {
-      return errorResponse(
-        res,
-        "Invalid email or password",
-        "INVALID_CREDENTIALS",
-        401
-      );
+      return errorResponse(res, "Invalid email or password", 401);
     }
 
+    // Generate token
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: "7d",
     });
@@ -147,7 +84,6 @@ export const loginUser = async (req, res) => {
         _id: user._id,
         firstName: user.firstName,
         lastName: user.lastName,
-        username: user.username,
         email: user.email,
         avatar: user.avatar,
         bio: user.bio,
@@ -155,11 +91,11 @@ export const loginUser = async (req, res) => {
       },
     });
   } catch (error) {
-    return errorResponse(res, "Login failed", "ERROR", 500, error);
+    return errorResponse(res, error.message || "Login failed", 500);
   }
 };
 
-// ===================== CURRENT USER =====================
+// CURRENT USER
 export const getCurrentUser = async (req, res) => {
   return successResponse(res, req.user);
 };

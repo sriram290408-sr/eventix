@@ -4,19 +4,17 @@ import responseHandler from "../utils/responseHandler.js";
 
 const { successResponse, errorResponse } = responseHandler;
 
-const isSameObjectId = (a, b) => String(a) === String(b);
-
-// User requests to join an event
+// REQUEST TO JOIN
 const requestToJoin = async (req, res) => {
   try {
     const event = await Event.findById(req.params.id);
 
     if (!event) {
-      return errorResponse(res, "Event not found", "NOT_FOUND", 404);
+      return errorResponse(res, "Event not found", 404);
     }
 
-    if (isSameObjectId(event.creator, req.user._id)) {
-      return errorResponse(res, "You are the event creator", "NOT_ALLOWED", 400);
+    if (event.creator.toString() === req.user._id.toString()) {
+      return errorResponse(res, "You are the event creator", 400);
     }
 
     const existing = await Participation.findOne({
@@ -25,12 +23,7 @@ const requestToJoin = async (req, res) => {
     });
 
     if (existing) {
-      return errorResponse(
-        res,
-        `Already ${existing.status}`,
-        "ALREADY_EXISTS",
-        400
-      );
+      return errorResponse(res, `Already ${existing.status}`, 400);
     }
 
     const status = event.requireApproval ? "pending" : "approved";
@@ -41,16 +34,13 @@ const requestToJoin = async (req, res) => {
       status,
     });
 
-    return successResponse(res, {
-      status: participation.status,
-      participation,
-    });
+    return successResponse(res, participation, 201);
   } catch (err) {
-    return errorResponse(res, "Failed to join event", "ERROR", 500, err);
+    return errorResponse(res, "Failed to join event", 500, err);
   }
 };
 
-// Event creator sees pending join requests
+// GET PENDING REQUESTS
 const getRequests = async (req, res) => {
   try {
     const requests = await Participation.find({
@@ -60,44 +50,21 @@ const getRequests = async (req, res) => {
 
     return successResponse(res, requests);
   } catch (err) {
-    return errorResponse(res, "Failed to fetch requests", "ERROR", 500);
+    return errorResponse(res, "Failed to fetch requests", 500);
   }
 };
 
-const getRequestOr404 = async (eventId, requestId, res) => {
-  const request = await Participation.findById(requestId);
-
-  if (!request) {
-    errorResponse(res, "Request not found", "NOT_FOUND", 404);
-    return null;
-  }
-
-  if (!isSameObjectId(request.event, eventId)) {
-    errorResponse(res, "Request not found", "NOT_FOUND", 404);
-    return null;
-  }
-
-  return request;
-};
-
-// Approve a pending request
+// APPROVE REQUEST
 const approveRequest = async (req, res) => {
   try {
-    const request = await getRequestOr404(
-      req.params.id,
-      req.params.requestId,
-      res
-    );
+    const request = await Participation.findById(req.params.requestId);
 
-    if (!request) return;
+    if (!request) {
+      return errorResponse(res, "Request not found", 404);
+    }
 
     if (request.status !== "pending") {
-      return errorResponse(
-        res,
-        "Only pending requests can be approved",
-        "INVALID_STATE",
-        400
-      );
+      return errorResponse(res, "Only pending requests can be approved", 400);
     }
 
     request.status = "approved";
@@ -105,28 +72,21 @@ const approveRequest = async (req, res) => {
 
     return successResponse(res, request);
   } catch (err) {
-    return errorResponse(res, "Failed to approve request", "ERROR", 500, err);
+    return errorResponse(res, "Failed to approve request", 500, err);
   }
 };
 
-// Reject a pending request
+// REJECT REQUEST
 const rejectRequest = async (req, res) => {
   try {
-    const request = await getRequestOr404(
-      req.params.id,
-      req.params.requestId,
-      res
-    );
+    const request = await Participation.findById(req.params.requestId);
 
-    if (!request) return;
+    if (!request) {
+      return errorResponse(res, "Request not found", 404);
+    }
 
     if (request.status !== "pending") {
-      return errorResponse(
-        res,
-        "Only pending requests can be rejected",
-        "INVALID_STATE",
-        400
-      );
+      return errorResponse(res, "Only pending requests can be rejected", 400);
     }
 
     request.status = "rejected";
@@ -134,11 +94,11 @@ const rejectRequest = async (req, res) => {
 
     return successResponse(res, request);
   } catch (err) {
-    return errorResponse(res, "Failed to reject request", "ERROR", 500, err);
+    return errorResponse(res, "Failed to reject request", 500, err);
   }
 };
 
-// approved guests list
+// GET APPROVED GUESTS
 const getGuests = async (req, res) => {
   try {
     const guests = await Participation.find({
@@ -148,7 +108,7 @@ const getGuests = async (req, res) => {
 
     return successResponse(res, guests);
   } catch (err) {
-    return errorResponse(res, "Failed to fetch guests", "ERROR", 500);
+    return errorResponse(res, "Failed to fetch guests", 500);
   }
 };
 

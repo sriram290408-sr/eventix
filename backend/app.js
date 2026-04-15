@@ -6,56 +6,37 @@ import authRoutes from "./routes/authRoutes.js";
 import eventRoutes from "./routes/eventRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 
+// Load Environment Variables
 dotenv.config();
 
+// Creating App
 const app = express();
 
-app.set("trust proxy", 1);
-
+// Parsing the data
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
-const allowedOrigins = [
-  process.env.FRONTEND_URL,
-  "http://localhost:5173",
-  "http://localhost:5174",
-  "http://localhost:3000",
-  "https://eventix-h8bzpx079-srirams-projects-4110cee6.vercel.app/",
-].filter(Boolean);
+// Middleware
+const allowedOrigins = [process.env.FRONTEND_URL].filter(Boolean);
 
-// CORS Middleware
+// CORS
 app.use(
   cors({
     origin: (origin, callback) => {
       if (!origin) return callback(null, true);
 
-      if (origin.startsWith("http://localhost")) return callback(null, true);
-
       if (allowedOrigins.includes(origin)) return callback(null, true);
 
-      if (origin.endsWith(".vercel.app")) return callback(null, true);
-
-      return callback(new Error("Not allowed by CORS"));
+      const error = new Error("Not allowed by CORS");
+      error.statusCode = 403;
+      return callback(error);
     },
     credentials: true,
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
-app.options("*", cors());
-
-// Root route
+// Root Route
 app.get("/", (req, res) => {
-  res.status(200).send("Backend Running Successfully");
-});
-
-// Health check route
-app.get("/api/health", (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: "API Working",
-  });
+  res.send("Backend Running Successfully");
 });
 
 // Routes
@@ -63,7 +44,7 @@ app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/events", eventRoutes);
 app.use("/api/v1/users", userRoutes);
 
-// Not Found
+// 404 handler (NOT FOUND)
 app.use((req, res) => {
   res.status(404).json({
     success: false,
@@ -71,10 +52,8 @@ app.use((req, res) => {
   });
 });
 
-// Error Handler 
+// 500 handler (INTERNAL SERVER ERROR)
 app.use((err, req, res, next) => {
-  console.error("SERVER ERROR:", err);
-
   res.status(err.statusCode || 500).json({
     success: false,
     message: err.message || "Server Error",

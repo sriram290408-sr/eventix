@@ -1,40 +1,23 @@
-import mongoose from "mongoose";
 import Event from "../models/Event.js";
-import logger from "../utils/logger.js";
 import responseHandler from "../utils/responseHandler.js";
 
 const { errorResponse } = responseHandler;
 
-const isSameObjectId = (a, b) => String(a) === String(b);
-
 export const isEventAdmin = async (req, res, next) => {
   try {
-    const { id } = req.params;
-
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return errorResponse(res, "Invalid event ID", "INVALID_ID", 400);
-    }
-
-    const event = await Event.findById(id);
+    const event = await Event.findById(req.params.id);
 
     if (!event) {
-      return errorResponse(res, "Event not found", "NOT_FOUND", 404);
+      return errorResponse(res, "Event not found", 404);
     }
 
-    if (!req.user || !isSameObjectId(event.creator, req.user._id)) {
-      return errorResponse(
-        res,
-        "Only event creator can perform this action",
-        "FORBIDDEN",
-        403
-      );
+    if (event.creator.toString() !== req.user._id.toString()) {
+      return errorResponse(res, "Only creator can update/delete this event", 403);
     }
 
     req.event = event;
-
     next();
   } catch (error) {
-    logger.error(`isEventAdmin middleware error: ${error.message}`, error);
-    next(error);
+    return errorResponse(res, "Server error", 500, error);
   }
 };

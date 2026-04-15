@@ -5,21 +5,14 @@ const userSchema = new mongoose.Schema(
   {
     firstName: {
       type: String,
-      trim: true,
       default: "",
+      trim: true,
     },
 
     lastName: {
       type: String,
-      trim: true,
       default: "",
-    },
-
-    username: {
-      type: String,
       trim: true,
-      unique: true,
-      required: true,
     },
 
     email: {
@@ -28,7 +21,6 @@ const userSchema = new mongoose.Schema(
       unique: true,
       trim: true,
       lowercase: true,
-      match: [/\S+@\S+\.\S+/, "is invalid"],
     },
 
     password: {
@@ -48,22 +40,16 @@ const userSchema = new mongoose.Schema(
     },
 
     socialLinks: {
-      twitter: { type: String, default: "" },
-      linkedin: { type: String, default: "" },
-      instagram: { type: String, default: "" },
-      youtube: { type: String, default: "" },
-      website: { type: String, default: "" },
+      type: Object,
+      default: {},
     },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
+// Hash password before saving user
 userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) {
-    return next();
-  }
+  if (!this.isModified("password")) return next();
 
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
@@ -71,6 +57,7 @@ userSchema.pre("save", async function (next) {
   next();
 });
 
+// Compare password during login
 userSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };

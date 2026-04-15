@@ -58,6 +58,7 @@ function EventDetails() {
   };
 
   // Fetch Event
+  // Fetch Event
   const fetchEvent = async () => {
     try {
       setLoading(true);
@@ -72,8 +73,8 @@ function EventDetails() {
       const data = await res.json();
 
       if (res.ok && data.success) {
-        setEvent(data.data.event);
-        setParticipationStatus(data.data.participationStatus || null);
+        setEvent(data.data); 
+        setParticipationStatus(null); // optional
       } else {
         setEvent(null);
       }
@@ -84,7 +85,6 @@ function EventDetails() {
       setLoading(false);
     }
   };
-
   // Fetch Requests
   const fetchRequests = async (eventId) => {
     try {

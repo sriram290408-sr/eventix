@@ -1,43 +1,14 @@
 import Event from "../models/Event.js";
 import Participation from "../models/Participation.js";
 import generateSlug from "../utils/generateSlug.js";
-import logger from "../utils/logger.js";
 import { uploadEventImage } from "../utils/cloudinary.js";
 import responseHandler from "../utils/responseHandler.js";
+import logger from "../utils/logger.js";
 
 const { successResponse, errorResponse } = responseHandler;
 
-const buildDiscoverFilter = (category) => {
-  const filter = {
-    isDeleted: false,
-    status: "published",
-    visibility: "Public",
-  };
-
-  if (category) filter.category = category;
-  return filter;
-};
-
-const addParticipationStatusToEvents = async (events, userId) => {
-  const eventIds = events.map((e) => e._id);
-
-  const participations = await Participation.find({
-    user: userId,
-    event: { $in: eventIds },
-  }).select("event status");
-
-  const statusByEventId = new Map(
-    participations.map((p) => [String(p.event), p.status])
-  );
-
-  return events.map((e) => ({
-    ...e.toObject(),
-    participationStatus: statusByEventId.get(String(e._id)) || null,
-  }));
-};
-
 // CREATE EVENT
-const createEvent = async (req, res, next) => {
+const createEvent = async (req, res) => {
   try {
     const {
       title,
@@ -53,6 +24,10 @@ const createEvent = async (req, res, next) => {
       image,
       theme,
     } = req.body;
+
+    if (!title || !description || !category || !startDate || !endDate) {
+      return errorResponse(res, "All required fields must be filled", 400);
+    }
 
     const slug = await generateSlug(title, async (candidateSlug) => {
       const existing = await Event.findOne({ slug: candidateSlug });
@@ -70,7 +45,7 @@ const createEvent = async (req, res, next) => {
       location,
       locationUrl: locationUrl || "",
       visibility: visibility || "Public",
-      requireApproval: requireApproval || true,
+      requireApproval: requireApproval ?? true,
       ticketPrice: ticketPrice || 0,
       image: uploadedImage,
       theme: theme || null,
@@ -78,11 +53,11 @@ const createEvent = async (req, res, next) => {
       slug,
     });
 
-    logger.info(`Event created: ${title} (${req.user.email})`);
+    logger.info(`Event created: ${event.title}`);
 
     return successResponse(res, event, 201);
   } catch (error) {
-    next(error);
+    return errorResponse(res, error.message || "Failed to create event", 500, error);
   }
 };
 
@@ -91,20 +66,23 @@ const getDiscoverEvents = async (req, res) => {
   try {
     const { category } = req.query;
 
-    const filter = buildDiscoverFilter(category);
+    const filter = {
+      isDeleted: false,
+      status: "published",
+      visibility: "Public",
+    };
+
+    if (category) {
+      filter.category = category;
+    }
 
     const events = await Event.find(filter)
       .sort({ startDate: 1 })
       .populate("creator", "firstName lastName username email avatar");
 
-    const enrichedEvents = await addParticipationStatusToEvents(
-      events,
-      req.user._id
-    );
-
-    return successResponse(res, enrichedEvents);
-  } catch (err) {
-    return errorResponse(res, "Failed to fetch discover events", "ERROR", 500);
+    return successResponse(res, events);
+  } catch (error) {
+    return errorResponse(res, "Failed to fetch discover events", 500, error);
   }
 };
 
@@ -117,22 +95,12 @@ const getEventBySlug = async (req, res) => {
     }).populate("creator", "firstName lastName username email avatar");
 
     if (!event) {
-      return errorResponse(res, "Event not found", "NOT_FOUND", 404);
+      return errorResponse(res, "Event not found", 404);
     }
 
-    const participation = await Participation.findOne({
-      event: event._id,
-      user: req.user._id,
-    });
-
-    const participationStatus = participation?.status || null;
-
-    return successResponse(res, {
-      event,
-      participationStatus,
-    });
-  } catch (err) {
-    return errorResponse(res, "Failed to fetch event", "ERROR", 500, err);
+    return successResponse(res, event);
+  } catch (error) {
+    return errorResponse(res, "Failed to fetch event", 500, error);
   }
 };
 
@@ -147,12 +115,12 @@ const getMyEvents = async (req, res) => {
       .populate("creator", "username email avatar");
 
     return successResponse(res, events);
-  } catch (err) {
-    return errorResponse(res, "Failed to fetch my events", "ERROR", 500);
+  } catch (error) {
+    return errorResponse(res, "Failed to fetch my events", 500, error);
   }
 };
 
-// GET EVENTS BY CATEGORY 
+// GET EVENTS BY CATEGORY
 const getEventsByCategory = async (req, res) => {
   try {
     const { category } = req.params;
@@ -165,14 +133,9 @@ const getEventsByCategory = async (req, res) => {
       .sort({ startDate: 1 })
       .populate("creator", "firstName lastName username email avatar");
 
-    const enrichedEvents = await addParticipationStatusToEvents(
-      events,
-      req.user._id
-    );
-
-    return successResponse(res, enrichedEvents);
-  } catch (err) {
-    return errorResponse(res, "Failed to fetch category events", "ERROR", 500);
+    return successResponse(res, events);
+  } catch (error) {
+    return errorResponse(res, "Failed to fetch category events", 500, error);
   }
 };
 
@@ -182,57 +145,31 @@ const getAttendingEvents = async (req, res) => {
     const attending = await Participation.find({
       user: req.user._id,
       status: "approved",
-    }).populate({
-      path: "event",
-      populate: {
-        path: "creator",
-        select: "firstName lastName username email avatar",
-      },
-    });
+    }).populate("event");
 
-    const events = attending
-      .map((p) => p.event)
-      .filter((e) => e && e.isDeleted !== true);
+    const events = attending.map((p) => p.event);
 
     return successResponse(res, events);
-  } catch (err) {
-    return errorResponse(res, "Failed to fetch attending events", "ERROR", 500);
+  } catch (error) {
+    return errorResponse(res, "Failed to fetch attending events", 500, error);
   }
 };
 
 // UPDATE EVENT
-const updateEvent = async (req, res, next) => {
+const updateEvent = async (req, res) => {
   try {
     const event = req.event;
 
-    const allowedFields = [
-      "title",
-      "description",
-      "category",
-      "startDate",
-      "endDate",
-      "location",
-      "locationUrl",
-      "visibility",
-      "requireApproval",
-      "ticketPrice",
-      "image",
-      "theme",
-    ];
-
-    allowedFields.forEach((field) => {
-      if (req.body[field] !== undefined) {
-        event[field] = req.body[field];
-      }
+    Object.keys(req.body).forEach((key) => {
+      event[key] = req.body[key];
     });
 
-    if (req.body.title && req.body.title !== event.title) {
+    if (req.body.title) {
       event.slug = await generateSlug(req.body.title, async (candidateSlug) => {
         const existing = await Event.findOne({
           slug: candidateSlug,
           _id: { $ne: event._id },
         });
-
         return !!existing;
       });
     }
@@ -243,12 +180,12 @@ const updateEvent = async (req, res, next) => {
 
     return successResponse(res, event);
   } catch (error) {
-    next(error);
+    return errorResponse(res, "Failed to update event", 500, error);
   }
 };
 
 // DELETE EVENT
-const deleteEvent = async (req, res, next) => {
+const deleteEvent = async (req, res) => {
   try {
     const event = req.event;
 
@@ -257,11 +194,9 @@ const deleteEvent = async (req, res, next) => {
 
     logger.info(`Event deleted: ${event.title}`);
 
-    return successResponse(res, {
-      message: "Event deleted successfully",
-    });
+    return successResponse(res, { message: "Event deleted successfully" });
   } catch (error) {
-    next(error);
+    return errorResponse(res, "Failed to delete event", 500, error);
   }
 };
 

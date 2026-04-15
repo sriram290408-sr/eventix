@@ -12,7 +12,7 @@ export const handleValidation = (req, res, next) => {
       .map((err) => err.msg)
       .join(", ");
 
-    return errorResponse(res, message, "VALIDATION_ERROR", 400);
+    return errorResponse(res, message, 400);
   }
 
   next();

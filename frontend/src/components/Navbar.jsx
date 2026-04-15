@@ -99,7 +99,7 @@ function Navbar() {
 
               <div>
                 <Typography sx={{ fontWeight: 600 }}>
-                  {user?.username || "User"}
+                  {user?.firstName || "User"}
                 </Typography>
 
                 <Typography variant="body2" sx={{ color: "gray" }}>
