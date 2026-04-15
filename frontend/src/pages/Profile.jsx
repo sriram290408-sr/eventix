@@ -108,7 +108,7 @@ function SocialField({ prefix, placeholder, icon, value, onChange }) {
   );
 }
 
-function ProfilePage() {
+function Profile() {
   const { token, updateUser } = useAuth();
 
   const [firstName, setFirstName] = useState("");
@@ -166,6 +166,8 @@ function ProfilePage() {
           });
 
           updateUser(user);
+        } else {
+          console.log("FETCH PROFILE FAILED:", data.message);
         }
       } catch (err) {
         console.log("FETCH PROFILE ERROR:", err);
@@ -175,7 +177,7 @@ function ProfilePage() {
     };
 
     fetchProfile();
-  }, [token]);
+  }, [token, BASE_URL, updateUser]);
 
   // ================= AVATAR UPLOAD =================
   const handleAvatarUpload = (e) => {
@@ -417,4 +419,4 @@ function ProfilePage() {
   );
 }
 
-export default ProfilePage;
+export default Profile;
