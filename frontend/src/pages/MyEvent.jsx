@@ -11,20 +11,20 @@ function MyEvent() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const BASE_URL = import.meta.env.VITE_BACKEND_URL || "";
+  const BASE_URL = (import.meta.env.VITE_BACKEND_URL || "").replace(/\/$/, "");
 
   const fetchMyEvents = async () => {
     try {
       setLoading(true);
 
-      const res = await axios.get(`${BASE_URL}api/v1/events/my-events`, {
+      const res = await axios.get(`${BASE_URL}/api/v1/events/my-events`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
       if (res.data?.success) {
-        setEvents(res.data?.data || res.data?.data?.events || []);
+        setEvents(res.data?.data || []);
       } else {
         setEvents([]);
       }

@@ -32,7 +32,7 @@ function EventDetails() {
   const { token, user } = useAuth();
   const navigate = useNavigate();
 
-  const BASE_URL = import.meta.env.BACKEND_URL || "";
+  const BASE_URL = (import.meta.env.VITE_BACKEND_URL || "").replace(/\/$/, "");
 
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -52,7 +52,6 @@ function EventDetails() {
     message: "",
   });
 
-  // ---------------- Toast Message ----------------
   const showToast = (message) => {
     setToast({ open: true, message });
   };
@@ -68,6 +67,11 @@ function EventDetails() {
           Authorization: `Bearer ${token}`,
         },
       });
+
+      if (!res.ok) {
+        setEvent(null);
+        return;
+      }
 
       const data = await res.json();
 
@@ -97,6 +101,11 @@ function EventDetails() {
         },
       });
 
+      if (!res.ok) {
+        setRequests([]);
+        return;
+      }
+
       const data = await res.json();
 
       if (data.success) {
@@ -125,6 +134,11 @@ function EventDetails() {
         },
       );
 
+      if (!res.ok) {
+        showToast("Approve failed");
+        return;
+      }
+
       const data = await res.json();
 
       if (data.success) {
@@ -148,6 +162,11 @@ function EventDetails() {
           Authorization: `Bearer ${token}`,
         },
       });
+
+      if (!res.ok) {
+        showToast("Reject failed");
+        return;
+      }
 
       const data = await res.json();
 
@@ -176,6 +195,11 @@ function EventDetails() {
           Authorization: `Bearer ${token}`,
         },
       });
+
+      if (!res.ok) {
+        showToast("Failed to join event");
+        return;
+      }
 
       const data = await res.json();
 
@@ -213,6 +237,11 @@ function EventDetails() {
         },
       });
 
+      if (!res.ok) {
+        showToast("Failed to cancel event");
+        return;
+      }
+
       const data = await res.json();
 
       if (data.success) {
@@ -241,7 +270,6 @@ function EventDetails() {
     }
   };
 
-  // ---------------- Clean Description ----------------
   const cleanDescription = (desc) => {
     if (!desc) return "";
     if (typeof desc === "string") {
@@ -250,7 +278,6 @@ function EventDetails() {
     return JSON.stringify(desc);
   };
 
-  // ---------------- Format Date ----------------
   const formatDate = (date) => {
     if (!date) return "";
     return new Date(date).toLocaleDateString("en-IN", {
@@ -260,20 +287,16 @@ function EventDetails() {
     });
   };
 
-  // ---------------- Check Creator ----------------
   const isCreator = event?.creator?._id === user?._id;
 
-  // ---------------- Join Button Condition ----------------
   const canJoin = !isCreator && (!participationStatus || participationStatus === "rejected");
 
-  // ---------------- Google Map Link ----------------
   const mapUrl = event?.locationUrl
     ? event.locationUrl
     : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
         event?.location || "",
       )}`;
 
-  // ---------------- Load Event When Page Opens ----------------
   useEffect(() => {
     if (!token) {
       navigate("/signin", { replace: true });
@@ -283,7 +306,6 @@ function EventDetails() {
     fetchEvent();
   }, [token, slug]);
 
-  // ---------------- Loading ----------------
   if (loading) {
     return (
       <Box sx={{ display: "flex", justifyContent: "center", mt: 10 }}>
@@ -292,7 +314,6 @@ function EventDetails() {
     );
   }
 
-  // ---------------- Not Found ----------------
   if (!event) {
     return (
       <Box sx={{ textAlign: "center", mt: 10 }}>
@@ -311,7 +332,6 @@ function EventDetails() {
 
   return (
     <Box sx={{ minHeight: "100vh" }}>
-      {/* ✅ Background Video */}
       {pageTheme.video && (
         <video
           autoPlay
@@ -332,7 +352,6 @@ function EventDetails() {
         </video>
       )}
 
-      {/* ✅ Fixed Background Theme Overlay */}
       <div
         style={{
           position: "fixed",
@@ -357,7 +376,6 @@ function EventDetails() {
             boxShadow: "0 14px 48px rgba(0,0,0,0.35)",
           }}
         >
-          {/* Banner */}
           <Box sx={{ position: "relative" }}>
             <Box
               component="img"
@@ -380,7 +398,6 @@ function EventDetails() {
 
           <CardContent sx={{ p: { xs: 2.5, sm: 4 } }}>
             <Stack spacing={2.2}>
-              {/* Title */}
               <Typography
                 variant="h3"
                 sx={{
@@ -392,13 +409,11 @@ function EventDetails() {
                 {event.title}
               </Typography>
 
-              {/* Info Section */}
               <Stack
                 direction={{ xs: "column", sm: "row" }}
                 spacing={2}
                 divider={<Divider flexItem sx={{ borderColor: "rgba(255,255,255,0.12)" }} />}
               >
-                {/* Left Info */}
                 <Stack spacing={1.2} sx={{ flex: 1 }}>
                   <Stack direction="row" spacing={1} alignItems="center">
                     <EventOutlinedIcon sx={{ color: "rgba(255,255,255,0.85)" }} />
@@ -425,7 +440,6 @@ function EventDetails() {
                   </Stack>
                 </Stack>
 
-                {/* Right Info */}
                 <Stack spacing={1.2} sx={{ flex: 1 }}>
                   <Stack direction="row" spacing={1} alignItems="center">
                     <LocationOnOutlinedIcon sx={{ color: "rgba(255,255,255,0.85)" }} />
@@ -446,7 +460,6 @@ function EventDetails() {
                 </Stack>
               </Stack>
 
-              {/* Buttons */}
               <Stack
                 direction={{ xs: "column", sm: "row" }}
                 spacing={1.5}
@@ -507,7 +520,6 @@ function EventDetails() {
 
               <Divider sx={{ borderColor: "rgba(255,255,255,0.12)" }} />
 
-              {/* Description */}
               <Box>
                 <Typography sx={{ fontSize: "1.1rem", fontWeight: 800, color: "white" }}>
                   Description
@@ -524,132 +536,11 @@ function EventDetails() {
                   {cleanDescription(event.description) || "No description provided."}
                 </Typography>
               </Box>
-
-              {/* Join Requests */}
-              {isCreator && (
-                <>
-                  <Divider sx={{ borderColor: "rgba(255,255,255,0.12)" }} />
-
-                  <Box>
-                    <Stack
-                      direction={{ xs: "column", sm: "row" }}
-                      alignItems={{ xs: "flex-start", sm: "center" }}
-                      justifyContent="space-between"
-                      spacing={1.5}
-                      sx={{ mb: 1.5 }}
-                    >
-                      <Typography
-                        sx={{
-                          fontSize: "1.05rem",
-                          fontWeight: 850,
-                          color: "white",
-                        }}
-                      >
-                        Join Requests
-                      </Typography>
-
-                      <Button
-                        onClick={() => fetchRequests(event._id)}
-                        variant="outlined"
-                        sx={{
-                          borderRadius: "12px",
-                          color: "white",
-                          borderColor: "rgba(255,255,255,0.28)",
-                          "&:hover": {
-                            borderColor: "rgba(255,255,255,0.45)",
-                            background: "rgba(255,255,255,0.06)",
-                          },
-                        }}
-                      >
-                        Refresh
-                      </Button>
-                    </Stack>
-
-                    {requestsLoading ? (
-                      <Box sx={{ display: "flex", justifyContent: "center", py: 3 }}>
-                        <CircularProgress size={22} sx={{ color: "#64a0fa" }} />
-                      </Box>
-                    ) : requests.length === 0 ? (
-                      <Typography sx={{ color: "rgba(255,255,255,0.75)" }}>
-                        No pending requests
-                      </Typography>
-                    ) : (
-                      <Stack spacing={1.2}>
-                        {requests.map((req) => (
-                          <Box
-                            key={req._id}
-                            sx={{
-                              p: 1.6,
-                              borderRadius: "14px",
-                              border: "1px solid rgba(255,255,255,0.14)",
-                              background: "rgba(255,255,255,0.05)",
-                            }}
-                          >
-                            <Stack
-                              direction={{ xs: "column", sm: "row" }}
-                              alignItems={{ xs: "flex-start", sm: "center" }}
-                              justifyContent="space-between"
-                              spacing={1.2}
-                            >
-                              <Box>
-                                <Typography sx={{ color: "white", fontWeight: 800 }}>
-                                  {req.user?.username ||
-                                    `${req.user?.firstName || ""} ${
-                                      req.user?.lastName || ""
-                                    }`.trim() ||
-                                    "User"}
-                                </Typography>
-
-                                <Typography
-                                  sx={{
-                                    color: "rgba(255,255,255,0.7)",
-                                    fontSize: "0.9rem",
-                                    mt: 0.2,
-                                  }}
-                                >
-                                  {req.user?.email || ""}
-                                </Typography>
-                              </Box>
-
-                              <Stack direction="row" spacing={1}>
-                                <Button
-                                  onClick={() => approveRequest(event._id, req._id)}
-                                  variant="contained"
-                                  color="success"
-                                  sx={{
-                                    borderRadius: "12px",
-                                    fontWeight: 800,
-                                  }}
-                                >
-                                  Approve
-                                </Button>
-
-                                <Button
-                                  onClick={() => rejectRequest(event._id, req._id)}
-                                  variant="contained"
-                                  color="error"
-                                  sx={{
-                                    borderRadius: "12px",
-                                    fontWeight: 800,
-                                  }}
-                                >
-                                  Reject
-                                </Button>
-                              </Stack>
-                            </Stack>
-                          </Box>
-                        ))}
-                      </Stack>
-                    )}
-                  </Box>
-                </>
-              )}
             </Stack>
           </CardContent>
         </Card>
       </Box>
 
-      {/* Snackbar */}
       <Snackbar
         open={toast.open}
         onClose={() => setToast({ open: false, message: "" })}
@@ -658,7 +549,6 @@ function EventDetails() {
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       />
 
-      {/* Cancel Dialog */}
       <Dialog open={confirmCancelOpen} onClose={() => setConfirmCancelOpen(false)}>
         <DialogTitle>Cancel this event?</DialogTitle>
         <DialogContent>

@@ -108,7 +108,8 @@ function CreateEvent() {
         theme: selectedTheme || null,
       };
 
-      const BASE_URL = import.meta.env.VITE_BACKEND_URL || "";
+      // ✅ FIX BASE URL
+      const BASE_URL = (import.meta.env.VITE_BACKEND_URL || "").replace(/\/$/, "");
 
       const res = await fetch(`${BASE_URL}/api/v1/events`, {
         method: "POST",
@@ -121,7 +122,7 @@ function CreateEvent() {
 
       const data = await res.json();
 
-      if (data.success) {
+      if (res.ok && data.success) {
         alert("Event Created Successfully!");
         navigate(`/private/event/${data.data.slug}`);
       } else {
@@ -129,7 +130,7 @@ function CreateEvent() {
       }
     } catch (err) {
       console.error("Create event error:", err);
-      alert("Something went wrong while creating event");
+      alert("Server not responding or CORS issue");
     } finally {
       setLoading(false);
     }
@@ -227,21 +228,6 @@ function CreateEvent() {
               border: "1px solid rgba(255, 255, 255, 0.15)",
               boxShadow: "0 8px 32px rgba(0,0,0,0.35)",
               p: 3,
-              scrollbarWidth: "thin",
-              scrollbarColor: "rgba(255,255,255,0.3) transparent",
-              "&::-webkit-scrollbar": {
-                width: "6px",
-              },
-              "&::-webkit-scrollbar-track": {
-                background: "transparent",
-              },
-              "&::-webkit-scrollbar-thumb": {
-                background: "rgba(255,255,255,0.25)",
-                borderRadius: "10px",
-              },
-              "&::-webkit-scrollbar-thumb:hover": {
-                background: "rgba(255,255,255,0.4)",
-              },
             }}
           >
             <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
@@ -435,23 +421,11 @@ function CreateEvent() {
             Ticket Pricing
           </Typography>
 
-          <Typography
-            sx={{
-              color: "rgba(255,255,255,0.75)",
-              fontSize: "0.92rem",
-              mb: 1,
-            }}
-          >
+          <Typography sx={{ color: "rgba(255,255,255,0.75)", fontSize: "0.92rem", mb: 1 }}>
             Payments can be enabled through Stripe integration.
           </Typography>
 
-          <Typography
-            sx={{
-              color: "rgba(255,255,255,0.7)",
-              fontSize: "0.84rem",
-              mb: 1.4,
-            }}
-          >
+          <Typography sx={{ color: "rgba(255,255,255,0.7)", fontSize: "0.84rem", mb: 1.4 }}>
             Right now, event ticket is set to Free by default.
           </Typography>
 

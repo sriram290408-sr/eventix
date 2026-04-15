@@ -13,6 +13,7 @@ function Discover() {
   useEffect(() => {
     if (!token) {
       navigate("/signin", { replace: true });
+      return;
     }
   }, [token, navigate]);
 

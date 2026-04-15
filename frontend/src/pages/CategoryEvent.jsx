@@ -128,6 +128,8 @@ function CategoryEvents() {
   const { token } = useAuth();
   const navigate = useNavigate();
 
+  const BASE_URL = (import.meta.env.VITE_BACKEND_URL || "").replace(/\/$/, "");
+
   useEffect(() => {
     const fetchCategoryEvents = async () => {
       try {
@@ -136,7 +138,7 @@ function CategoryEvents() {
         setLoading(true);
 
         const res = await axios.get(
-          `/api/v1/events/discover?category=${encodeURIComponent(decodedCategory)}`,
+          `${BASE_URL}/api/v1/events/category/${encodeURIComponent(decodedCategory)}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -149,7 +151,8 @@ function CategoryEvents() {
         } else {
           setEvents([]);
         }
-      } catch {
+      } catch (err) {
+        console.error("Category Fetch Error:", err);
         setEvents([]);
       } finally {
         setLoading(false);

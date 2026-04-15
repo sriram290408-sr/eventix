@@ -95,7 +95,7 @@ function Event() {
   const { token } = useAuth();
   const navigate = useNavigate();
 
-  const BASE_URL = import.meta.env.VITE_BACKEND_URL || "";
+  const BASE_URL = (import.meta.env.VITE_BACKEND_URL || "").replace(/\/$/, "");
 
   const handleChange = (_, newView) => {
     if (newView !== null) setView(newView);

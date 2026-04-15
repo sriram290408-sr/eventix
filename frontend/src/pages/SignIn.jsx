@@ -19,6 +19,8 @@ function SignIn() {
   const { login } = useAuth();
   const navigate = useNavigate();
 
+  const BASE_URL = (import.meta.env.VITE_BACKEND_URL || "").replace(/\/$/, "");
+
   const handleChange = (e) => {
     setFormData((prev) => ({
       ...prev,
@@ -28,7 +30,6 @@ function SignIn() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (loading) return;
 
     setLoading(true);
@@ -40,8 +41,6 @@ function SignIn() {
         setLoading(false);
         return;
       }
-
-      const BASE_URL = import.meta.env.VITE_BACKEND_URL || "";
 
       const res = await axios.post(
         `${BASE_URL}/api/v1/auth/login`,
@@ -58,13 +57,7 @@ function SignIn() {
         return;
       }
 
-      if (res.data?.token && res.data?.user) {
-        login(res.data.user, res.data.token);
-        navigate("/private/event", { replace: true });
-        return;
-      }
-
-      setErrorMsg("Invalid response from server. Please try again.");
+      setErrorMsg(res.data?.message || "Login failed");
     } catch (err) {
       console.log("LOGIN ERROR:", err);
 
@@ -82,35 +75,20 @@ function SignIn() {
   return (
     <div className="signin-page">
       <div className="signin-card">
-        <Button
-          component={Link}
-          to="/"
-          sx={{
-            display: "flex",
-            justifyContent: "start",
-            width: "fit-content",
-          }}
-        >
+        <Button component={Link} to="/" sx={{ display: "flex", justifyContent: "start" }}>
           <ExitToAppRounded className="icon-box" />
         </Button>
 
-        <Typography variant="h5" className="title" sx={{ textAlign: "center", marginBottom: 2 }}>
+        <Typography variant="h5" className="title" sx={{ textAlign: "center", mb: 2 }}>
           Welcome to Eventix
         </Typography>
 
-        <Typography className="subtitle" sx={{ textAlign: "center", marginBottom: 3 }}>
+        <Typography className="subtitle" sx={{ textAlign: "center", mb: 3 }}>
           Sign in to continue.
         </Typography>
 
         {errorMsg && (
-          <Typography
-            sx={{
-              color: "red",
-              fontSize: "14px",
-              marginBottom: "15px",
-              textAlign: "center",
-            }}
-          >
+          <Typography sx={{ color: "red", fontSize: "14px", mb: 2, textAlign: "center" }}>
             {errorMsg}
           </Typography>
         )}
@@ -147,7 +125,7 @@ function SignIn() {
                 backgroundColor: "#006bde",
                 width: "100%",
                 height: "40px",
-                marginTop: 2,
+                mt: 2,
                 "&:hover": { backgroundColor: "#0056b3" },
               }}
             >
@@ -162,8 +140,7 @@ function SignIn() {
           sx={{
             display: "block",
             textAlign: "center",
-            marginTop: 3,
-            cursor: "pointer",
+            mt: 3,
             color: "#006bde",
             textDecoration: "none",
             fontSize: "14px",

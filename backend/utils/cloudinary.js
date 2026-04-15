@@ -15,6 +15,7 @@ if (hasCloudinaryConfig()) {
   });
 }
 
+// Event image upload (base64)
 export const uploadEventImage = async (image) => {
   try {
     if (!image || typeof image !== "string") return "";
@@ -29,5 +30,28 @@ export const uploadEventImage = async (image) => {
   } catch (error) {
     console.error("Cloudinary upload failed:", error.message);
     return image;
+  }
+};
+
+// Avatar upload (multer file buffer)
+export const uploadAvatarImage = async (file) => {
+  try {
+    if (!file) return "";
+    if (!hasCloudinaryConfig()) return "";
+
+    return new Promise((resolve, reject) => {
+      cloudinary.uploader
+        .upload_stream(
+          { folder: "eventaxis/avatars", resource_type: "image" },
+          (error, result) => {
+            if (error) return reject(error);
+            resolve(result.secure_url);
+          }
+        )
+        .end(file.buffer);
+    });
+  } catch (error) {
+    console.error("Avatar upload failed:", error.message);
+    return "";
   }
 };

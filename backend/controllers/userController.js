@@ -1,6 +1,7 @@
 import User from "../models/User.js";
 import logger from "../utils/logger.js";
 import responseHandler from "../utils/responseHandler.js";
+import { uploadAvatarImage } from "../utils/cloudinary.js";
 
 const { successResponse, errorResponse } = responseHandler;
 
@@ -26,11 +27,10 @@ export const updateProfile = async (req, res) => {
 
     let socialLinks = req.body.socialLinks;
 
-    // If socialLinks comes as string (FormData), parse it
     if (socialLinks && typeof socialLinks === "string") {
       try {
         socialLinks = JSON.parse(socialLinks);
-      } catch (err) {
+      } catch {
         socialLinks = null;
       }
     }
@@ -41,12 +41,10 @@ export const updateProfile = async (req, res) => {
       return errorResponse(res, "User not found", "NOT_FOUND", 404);
     }
 
-    // Update basic fields
     if (firstName !== undefined) user.firstName = firstName.trim();
     if (lastName !== undefined) user.lastName = lastName.trim();
     if (bio !== undefined) user.bio = bio;
 
-    // Username check
     if (username && username !== user.username) {
       const normalizedUsername = username.toLowerCase().trim();
 
@@ -56,13 +54,17 @@ export const updateProfile = async (req, res) => {
       });
 
       if (existing) {
-        return errorResponse(res, "Username already taken", "VALIDATION_ERROR", 400);
+        return errorResponse(
+          res,
+          "Username already taken",
+          "VALIDATION_ERROR",
+          400
+        );
       }
 
       user.username = normalizedUsername;
     }
 
-    // Update social links
     if (socialLinks && typeof socialLinks === "object") {
       user.socialLinks = {
         instagram: socialLinks.instagram || "",
@@ -72,9 +74,10 @@ export const updateProfile = async (req, res) => {
       };
     }
 
-    // Avatar file upload (if using multer)
+    // Upload avatar to cloudinary
     if (req.file) {
-      user.avatar = req.file.path; 
+      const avatarUrl = await uploadAvatarImage(req.file);
+      if (avatarUrl) user.avatar = avatarUrl;
     }
 
     await user.save();
