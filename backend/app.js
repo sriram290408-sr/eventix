@@ -10,44 +10,49 @@ dotenv.config();
 
 const app = express();
 
-// ✅ Vercel needs this
 app.set("trust proxy", 1);
 
-// ✅ Middleware
-app.use(express.json());
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "http://localhost:3000",
+  "https://eventix-mu.vercel.app",
+];
 
-// ✅ CORS (Allow frontend + vercel preview URLs)
 app.use(
   cors({
     origin: (origin, callback) => {
       if (!origin) return callback(null, true);
 
-      if (origin.startsWith("http://localhost")) return callback(null, true);
+      if (allowedOrigins.includes(origin)) return callback(null, true);
 
       if (origin.endsWith(".vercel.app")) return callback(null, true);
 
-      return callback(null, true);
+      return callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
-// ✅ Test route
+// Test route
 app.get("/", (req, res) => {
   res.send("Eventix Backend is Running 🚀");
 });
 
-// ✅ Health route
+// Health route
 app.get("/api/health", (req, res) => {
   res.json({ success: true, message: "API Working" });
 });
 
-// ✅ Routes
+// Routes
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/events", eventRoutes);
 app.use("/api/v1/users", userRoutes);
 
-// ✅ Not Found
+// Not Found
 app.use((req, res) => {
   res.status(404).json({
     success: false,
@@ -55,7 +60,7 @@ app.use((req, res) => {
   });
 });
 
-// ✅ Error Handler
+// Error Handler
 app.use((err, req, res, next) => {
   res.status(500).json({
     success: false,
