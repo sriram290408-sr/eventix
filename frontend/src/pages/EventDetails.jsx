@@ -43,6 +43,9 @@ function EventDetails() {
 
   const [participationStatus, setParticipationStatus] = useState(null);
 
+  const [requests, setRequests] = useState([]);
+  const [requestsLoading, setRequestsLoading] = useState(false);
+
   const [confirmCancelOpen, setConfirmCancelOpen] = useState(false);
 
   const [toast, setToast] = useState({
@@ -66,14 +69,9 @@ function EventDetails() {
         },
       });
 
-      if (!res.ok) {
-        setEvent(null);
-        return;
-      }
-
       const data = await res.json();
 
-      if (data.success) {
+      if (res.ok && data.success) {
         setEvent(data.data.event);
         setParticipationStatus(data.data.participationStatus || null);
       } else {
@@ -84,6 +82,90 @@ function EventDetails() {
       setEvent(null);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // ---------------- Fetch Requests ----------------
+  const fetchRequests = async (eventId) => {
+    try {
+      setRequestsLoading(true);
+
+      const res = await fetch(`${BASE_URL}/api/v1/events/${eventId}/requests`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        setRequests(data.data || []);
+      } else {
+        setRequests([]);
+      }
+    } catch (err) {
+      console.log("Fetch Requests Error:", err);
+      setRequests([]);
+    } finally {
+      setRequestsLoading(false);
+    }
+  };
+
+  // ---------------- Approve Request ----------------
+  const approveRequest = async (eventId, requestId) => {
+    try {
+      const res = await fetch(
+        `${BASE_URL}/api/v1/events/${eventId}/requests/${requestId}/approve`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        showToast(data.message || "Approve failed");
+        return;
+      }
+
+      showToast("Approved Successfully ✅");
+
+      // remove request instantly
+      setRequests((prev) => prev.filter((r) => r._id !== requestId));
+    } catch (err) {
+      console.log("Approve Error:", err);
+      showToast("Approve failed");
+    }
+  };
+
+  // ---------------- Reject Request ----------------
+  const rejectRequest = async (eventId, requestId) => {
+    try {
+      const res = await fetch(`${BASE_URL}/api/v1/events/${eventId}/requests/${requestId}/reject`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        showToast(data.message || "Reject failed");
+        return;
+      }
+
+      showToast("Rejected ❌");
+
+      // remove request instantly
+      setRequests((prev) => prev.filter((r) => r._id !== requestId));
+    } catch (err) {
+      console.log("Reject Error:", err);
+      showToast("Reject failed");
     }
   };
 
@@ -103,17 +185,18 @@ function EventDetails() {
 
       const data = await res.json();
 
-      if (data.success) {
-        const status = data.data?.status || "approved";
-        setParticipationStatus(status);
-
-        if (status === "pending") {
-          showToast("Request sent for approval");
-        } else {
-          showToast("You joined the event!");
-        }
-      } else {
+      if (!res.ok || !data.success) {
         showToast(data.message || "Failed to join event");
+        return;
+      }
+
+      const status = data.data?.status || "approved";
+      setParticipationStatus(status);
+
+      if (status === "pending") {
+        showToast("Request sent for approval ⏳");
+      } else {
+        showToast("You joined the event! ✅");
       }
     } catch (err) {
       console.log("Join Error:", err);
@@ -139,12 +222,13 @@ function EventDetails() {
 
       const data = await res.json();
 
-      if (data.success) {
-        showToast("Event cancelled");
-        navigate("/private/my-event", { replace: true });
-      } else {
+      if (!res.ok || !data.success) {
         showToast(data.message || "Failed to cancel event");
+        return;
       }
+
+      showToast("Event cancelled ❌");
+      navigate("/private/my-event", { replace: true });
     } catch (err) {
       console.log("Cancel Event Error:", err);
       showToast("Failed to cancel event");
@@ -159,7 +243,7 @@ function EventDetails() {
     try {
       const url = `${window.location.origin}/private/event/${slug}`;
       await navigator.clipboard.writeText(url);
-      showToast("Event link copied");
+      showToast("Event link copied 🔗");
     } catch {
       showToast("Failed to copy link");
     }
@@ -184,13 +268,9 @@ function EventDetails() {
 
   const isCreator = event?.creator?._id === user?._id;
 
-  // ✅ Approval status handling
   const alreadyJoined = participationStatus === "approved";
   const pendingApproval = participationStatus === "pending";
   const rejected = participationStatus === "rejected";
-
-  // Join allowed only if not creator and not approved/pending
-  const canJoin = !isCreator && !alreadyJoined && !pendingApproval;
 
   const mapUrl = event?.locationUrl
     ? event.locationUrl
@@ -198,6 +278,7 @@ function EventDetails() {
         event?.location || "",
       )}`;
 
+  // ---------------- Fetch Data ----------------
   useEffect(() => {
     if (!token) {
       navigate("/signin", { replace: true });
@@ -206,6 +287,13 @@ function EventDetails() {
 
     fetchEvent();
   }, [token, slug]);
+
+  // Fetch requests only for creator
+  useEffect(() => {
+    if (event?._id && isCreator) {
+      fetchRequests(event._id);
+    }
+  }, [event?._id, isCreator]);
 
   if (loading) {
     return (
@@ -313,8 +401,7 @@ function EventDetails() {
                   {event.title}
                 </Typography>
 
-                {/* ✅ Status Chip */}
-                {participationStatus && !isCreator && (
+                {!isCreator && participationStatus && (
                   <Chip
                     label={
                       participationStatus === "approved"
@@ -391,11 +478,7 @@ function EventDetails() {
               </Stack>
 
               {/* Buttons */}
-              <Stack
-                direction={{ xs: "column", sm: "row" }}
-                spacing={1.5}
-                alignItems={{ xs: "stretch", sm: "center" }}
-              >
+              <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
                 <Button
                   onClick={copyLink}
                   variant="outlined"
@@ -413,7 +496,6 @@ function EventDetails() {
                   Copy Link
                 </Button>
 
-                {/* ✅ Join Button with Approval Logic */}
                 {!isCreator && (
                   <Button
                     disabled={joinLoading || alreadyJoined || pendingApproval}
@@ -483,6 +565,74 @@ function EventDetails() {
                   {cleanDescription(event.description) || "No description provided."}
                 </Typography>
               </Box>
+
+              {/* ================== REQUEST LIST ================== */}
+              {isCreator && event.requireApproval && (
+                <>
+                  <Divider sx={{ borderColor: "rgba(255,255,255,0.12)" }} />
+
+                  <Box>
+                    <Typography sx={{ fontSize: "1.2rem", fontWeight: 800, color: "white", mb: 2 }}>
+                      Join Requests
+                    </Typography>
+
+                    {requestsLoading ? (
+                      <CircularProgress />
+                    ) : requests.length === 0 ? (
+                      <Typography sx={{ color: "gray" }}>No pending requests.</Typography>
+                    ) : (
+                      <Stack spacing={2}>
+                        {requests.map((req) => (
+                          <Box
+                            key={req._id}
+                            sx={{
+                              p: 2,
+                              borderRadius: "14px",
+                              border: "1px solid rgba(255,255,255,0.15)",
+                              background: "rgba(255,255,255,0.06)",
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                              flexWrap: "wrap",
+                              gap: 2,
+                            }}
+                          >
+                            <Box>
+                              <Typography sx={{ color: "white", fontWeight: 800 }}>
+                                {req.user?.firstName || ""} {req.user?.lastName || ""}
+                              </Typography>
+
+                              <Typography
+                                sx={{ color: "rgba(255,255,255,0.7)", fontSize: "0.9rem" }}
+                              >
+                                {req.user?.email}
+                              </Typography>
+                            </Box>
+
+                            <Stack direction="row" spacing={1}>
+                              <Button
+                                variant="contained"
+                                color="success"
+                                onClick={() => approveRequest(event._id, req._id)}
+                              >
+                                Approve
+                              </Button>
+
+                              <Button
+                                variant="contained"
+                                color="error"
+                                onClick={() => rejectRequest(event._id, req._id)}
+                              >
+                                Reject
+                              </Button>
+                            </Stack>
+                          </Box>
+                        ))}
+                      </Stack>
+                    )}
+                  </Box>
+                </>
+              )}
             </Stack>
           </CardContent>
         </Card>
