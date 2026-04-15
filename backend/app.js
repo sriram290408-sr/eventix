@@ -11,6 +11,9 @@ dotenv.config();
 const app = express();
 
 app.set("trust proxy", 1);
+r
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 const allowedOrigins = [
   process.env.FRONTEND_URL,
@@ -18,12 +21,15 @@ const allowedOrigins = [
   "http://localhost:5174",
   "http://localhost:3000",
   "https://eventix-mu.vercel.app",
-];
+].filter(Boolean);
 
+// CORS Middleware
 app.use(
   cors({
     origin: (origin, callback) => {
       if (!origin) return callback(null, true);
+
+      if (origin.startsWith("http://localhost")) return callback(null, true);
 
       if (allowedOrigins.includes(origin)) return callback(null, true);
 
@@ -32,19 +38,24 @@ app.use(
       return callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
-// Test route
+app.options("*", cors());
+
+// Root route
 app.get("/", (req, res) => {
-  res.send("Eventix Backend is Running 🚀");
+  res.status(200).send("Backend Running Successfully");
 });
 
-// Health route
+// Health check route
 app.get("/api/health", (req, res) => {
-  res.json({ success: true, message: "API Working" });
+  res.status(200).json({
+    success: true,
+    message: "API Working",
+  });
 });
 
 // Routes
@@ -60,9 +71,11 @@ app.use((req, res) => {
   });
 });
 
-// Error Handler
+// Error Handler 
 app.use((err, req, res, next) => {
-  res.status(500).json({
+  console.error("SERVER ERROR:", err);
+
+  res.status(err.statusCode || 500).json({
     success: false,
     message: err.message || "Server Error",
   });
