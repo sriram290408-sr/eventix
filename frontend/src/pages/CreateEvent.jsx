@@ -108,7 +108,7 @@ function CreateEvent() {
         theme: selectedTheme || null,
       };
 
-      const BASE_URL = import.meta.env.VITE_BACKEND_URL || "";
+      const BASE_URL = import.meta.env.BACKEND_URL";
 
       const res = await fetch(`${BASE_URL}/api/v1/events`, {
         method: "POST",

@@ -11,7 +11,7 @@ function MyEvent() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const BASE_URL = import.meta.env.VITE_BACKEND_URL || "";
+  const BASE_URL = import.meta.env.BACKEND_URL || "";
 
   const fetchMyEvents = async () => {
     try {
