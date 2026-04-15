@@ -16,14 +16,15 @@ import { generalLimiter } from "./middlewares/rateLimitMiddleware.js";
 
 const app = express();
 
-// ====================== SECURITY ======================
+app.set("trust proxy", 1);
+// SECURITY
 app.use(
   helmet({
     crossOriginResourcePolicy: false,
   })
 );
 
-// ====================== CORS ======================
+// CORS
 const allowedOrigins = [
   process.env.FRONTEND_URL,
   "http://localhost:5173",
@@ -49,37 +50,37 @@ app.use(
   })
 );
 
-// ====================== BODY PARSER ======================
+// BODY PARSER
 app.use(express.json({ limit: "5mb" }));
 app.use(express.urlencoded({ extended: true }));
 
-// ====================== COOKIES ======================
+// COOKIES
 app.use(cookieParser());
 
-// ====================== SANITIZE ======================
+// SANITIZE
 app.use(mongoSanitize());
 
-// ====================== COMPRESSION ======================
+// COMPRESSION
 app.use(compression());
 
-// ====================== REQUEST ID ======================
+// REQUEST ID
 app.use((req, res, next) => {
   req.id = crypto.randomUUID();
   res.setHeader("X-Request-Id", req.id);
   next();
 });
 
-// ====================== LOGGER ======================
+// LOGGER
 if (process.env.NODE_ENV !== "production") {
   app.use(
     morgan(":method :url :status :response-time ms - :res[content-length]")
   );
 }
 
-// ====================== RATE LIMIT ======================
+// RATE LIMIT 
 app.use(generalLimiter);
 
-// ====================== HEALTH CHECK ======================
+// HEALTH CHECK 
 app.get("/api/health", (req, res) => {
   res.status(200).json({
     success: true,
@@ -89,12 +90,12 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-// ====================== ROUTES ======================
+// ROUTES
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/events", eventRoutes);
 app.use("/api/v1/users", userRoutes);
 
-// ====================== ERROR HANDLING ======================
+// ERROR HANDLING
 app.use(notFound);
 app.use(errorHandler);
 
