@@ -23,7 +23,7 @@ export const getProfile = async (req, res) => {
 // UPDATE PROFILE
 export const updateProfile = async (req, res) => {
   try {
-    const { firstName, lastName, bio, socialLinks } = req.body;
+    const { firstName, lastName, username, bio, socialLinks } = req.body;
 
     const user = await User.findById(req.user._id);
 
@@ -31,17 +31,18 @@ export const updateProfile = async (req, res) => {
       return errorResponse(res, "User not found", 404);
     }
 
-    // Update fields
     if (firstName !== undefined) user.firstName = firstName.trim();
     if (lastName !== undefined) user.lastName = lastName.trim();
+    if (username !== undefined) user.username = username.trim();
     if (bio !== undefined) user.bio = bio;
 
-    // Update social links
     if (socialLinks) {
-      user.socialLinks = socialLinks;
+      user.socialLinks =
+        typeof socialLinks === "string"
+          ? JSON.parse(socialLinks)
+          : socialLinks;
     }
 
-    // Upload avatar
     if (req.file) {
       const avatarUrl = await uploadAvatarImage(req.file);
       if (avatarUrl) user.avatar = avatarUrl;

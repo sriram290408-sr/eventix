@@ -6,10 +6,8 @@ import upload from "../middlewares/uploadMiddleware.js";
 
 const router = express.Router();
 
-// Get profile
 router.get("/profile", protect, getProfile);
 
-// Update profile
 router.put("/profile", protect, upload.single("avatar"), updateProfile);
 
 export default router;
