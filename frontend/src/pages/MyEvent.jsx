@@ -17,7 +17,7 @@ function MyEvent() {
     try {
       setLoading(true);
 
-      const res = await axios.get(`${BASE_URL}/api/v1/events/my-events`, {
+      const res = await axios.get(`${BASE_URL}api/v1/events/my-events`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
