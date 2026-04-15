@@ -17,6 +17,7 @@ import {
   Snackbar,
   Stack,
   Typography,
+  Chip,
 } from "@mui/material";
 
 import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
@@ -41,9 +42,6 @@ function EventDetails() {
   const [deleteLoading, setDeleteLoading] = useState(false);
 
   const [participationStatus, setParticipationStatus] = useState(null);
-
-  const [requests, setRequests] = useState([]);
-  const [requestsLoading, setRequestsLoading] = useState(false);
 
   const [confirmCancelOpen, setConfirmCancelOpen] = useState(false);
 
@@ -77,7 +75,7 @@ function EventDetails() {
 
       if (data.success) {
         setEvent(data.data.event);
-        setParticipationStatus(data.data.participationStatus);
+        setParticipationStatus(data.data.participationStatus || null);
       } else {
         setEvent(null);
       }
@@ -86,99 +84,6 @@ function EventDetails() {
       setEvent(null);
     } finally {
       setLoading(false);
-    }
-  };
-
-  // ---------------- Fetch Requests ----------------
-  const fetchRequests = async (eventId) => {
-    try {
-      setRequestsLoading(true);
-
-      const res = await fetch(`${BASE_URL}/api/v1/events/${eventId}/requests`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!res.ok) {
-        setRequests([]);
-        return;
-      }
-
-      const data = await res.json();
-
-      if (data.success) {
-        setRequests(data.data || []);
-      } else {
-        setRequests([]);
-      }
-    } catch (err) {
-      console.log("Fetch Requests Error:", err);
-      setRequests([]);
-    } finally {
-      setRequestsLoading(false);
-    }
-  };
-
-  // ---------------- Approve Request ----------------
-  const approveRequest = async (eventId, requestId) => {
-    try {
-      const res = await fetch(
-        `${BASE_URL}/api/v1/events/${eventId}/requests/${requestId}/approve`,
-        {
-          method: "PUT",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-
-      if (!res.ok) {
-        showToast("Approve failed");
-        return;
-      }
-
-      const data = await res.json();
-
-      if (data.success) {
-        showToast("Approved");
-        fetchRequests(eventId);
-      } else {
-        showToast(data.message || "Approve failed");
-      }
-    } catch (err) {
-      console.log("Approve Error:", err);
-      showToast("Approve failed");
-    }
-  };
-
-  // ---------------- Reject Request ----------------
-  const rejectRequest = async (eventId, requestId) => {
-    try {
-      const res = await fetch(`${BASE_URL}/api/v1/events/${eventId}/requests/${requestId}/reject`, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!res.ok) {
-        showToast("Reject failed");
-        return;
-      }
-
-      const data = await res.json();
-
-      if (data.success) {
-        showToast("Rejected");
-        fetchRequests(eventId);
-      } else {
-        showToast(data.message || "Reject failed");
-      }
-    } catch (err) {
-      console.log("Reject Error:", err);
-      showToast("Reject failed");
     }
   };
 
@@ -195,11 +100,6 @@ function EventDetails() {
           Authorization: `Bearer ${token}`,
         },
       });
-
-      if (!res.ok) {
-        showToast("Failed to join event");
-        return;
-      }
 
       const data = await res.json();
 
@@ -236,11 +136,6 @@ function EventDetails() {
           Authorization: `Bearer ${token}`,
         },
       });
-
-      if (!res.ok) {
-        showToast("Failed to cancel event");
-        return;
-      }
 
       const data = await res.json();
 
@@ -289,7 +184,13 @@ function EventDetails() {
 
   const isCreator = event?.creator?._id === user?._id;
 
-  const canJoin = !isCreator && (!participationStatus || participationStatus === "rejected");
+  // ✅ Approval status handling
+  const alreadyJoined = participationStatus === "approved";
+  const pendingApproval = participationStatus === "pending";
+  const rejected = participationStatus === "rejected";
+
+  // Join allowed only if not creator and not approved/pending
+  const canJoin = !isCreator && !alreadyJoined && !pendingApproval;
 
   const mapUrl = event?.locationUrl
     ? event.locationUrl
@@ -376,6 +277,7 @@ function EventDetails() {
             boxShadow: "0 14px 48px rgba(0,0,0,0.35)",
           }}
         >
+          {/* Banner */}
           <Box sx={{ position: "relative" }}>
             <Box
               component="img"
@@ -398,17 +300,45 @@ function EventDetails() {
 
           <CardContent sx={{ p: { xs: 2.5, sm: 4 } }}>
             <Stack spacing={2.2}>
-              <Typography
-                variant="h3"
-                sx={{
-                  fontWeight: 850,
-                  color: "white",
-                  fontSize: { xs: "2rem", sm: "2.4rem" },
-                }}
-              >
-                {event.title}
-              </Typography>
+              {/* Title */}
+              <Stack direction="row" justifyContent="space-between" alignItems="center">
+                <Typography
+                  variant="h3"
+                  sx={{
+                    fontWeight: 850,
+                    color: "white",
+                    fontSize: { xs: "2rem", sm: "2.4rem" },
+                  }}
+                >
+                  {event.title}
+                </Typography>
 
+                {/* ✅ Status Chip */}
+                {participationStatus && !isCreator && (
+                  <Chip
+                    label={
+                      participationStatus === "approved"
+                        ? "Approved"
+                        : participationStatus === "pending"
+                          ? "Pending"
+                          : "Rejected"
+                    }
+                    sx={{
+                      fontWeight: 800,
+                      color: "white",
+                      background:
+                        participationStatus === "approved"
+                          ? "rgba(34,197,94,0.25)"
+                          : participationStatus === "pending"
+                            ? "rgba(234,179,8,0.25)"
+                            : "rgba(239,68,68,0.25)",
+                      border: "1px solid rgba(255,255,255,0.2)",
+                    }}
+                  />
+                )}
+              </Stack>
+
+              {/* Info */}
               <Stack
                 direction={{ xs: "column", sm: "row" }}
                 spacing={2}
@@ -460,6 +390,7 @@ function EventDetails() {
                 </Stack>
               </Stack>
 
+              {/* Buttons */}
               <Stack
                 direction={{ xs: "column", sm: "row" }}
                 spacing={1.5}
@@ -482,23 +413,38 @@ function EventDetails() {
                   Copy Link
                 </Button>
 
-                {canJoin && (
+                {/* ✅ Join Button with Approval Logic */}
+                {!isCreator && (
                   <Button
-                    disabled={joinLoading}
+                    disabled={joinLoading || alreadyJoined || pendingApproval}
                     onClick={handleJoin}
                     variant="contained"
                     sx={{
                       borderRadius: "12px",
                       fontWeight: 800,
-                      background: "#22c55e",
-                      "&:hover": { background: "#16a34a" },
+                      background: pendingApproval
+                        ? "#eab308"
+                        : alreadyJoined
+                          ? "#22c55e"
+                          : "#3b82f6",
+                      "&:hover": {
+                        background: pendingApproval
+                          ? "#ca8a04"
+                          : alreadyJoined
+                            ? "#16a34a"
+                            : "#2563eb",
+                      },
                     }}
                   >
                     {joinLoading
                       ? "Joining..."
-                      : event.requireApproval
-                        ? "Request to Join"
-                        : "Register"}
+                      : alreadyJoined
+                        ? "Already Joined"
+                        : pendingApproval
+                          ? "Pending Approval"
+                          : event.requireApproval
+                            ? "Request to Join"
+                            : "Register"}
                   </Button>
                 )}
 
@@ -520,6 +466,7 @@ function EventDetails() {
 
               <Divider sx={{ borderColor: "rgba(255,255,255,0.12)" }} />
 
+              {/* Description */}
               <Box>
                 <Typography sx={{ fontSize: "1.1rem", fontWeight: 800, color: "white" }}>
                   Description
@@ -541,6 +488,7 @@ function EventDetails() {
         </Card>
       </Box>
 
+      {/* Snackbar */}
       <Snackbar
         open={toast.open}
         onClose={() => setToast({ open: false, message: "" })}
@@ -549,6 +497,7 @@ function EventDetails() {
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       />
 
+      {/* Cancel Dialog */}
       <Dialog open={confirmCancelOpen} onClose={() => setConfirmCancelOpen(false)}>
         <DialogTitle>Cancel this event?</DialogTitle>
         <DialogContent>
