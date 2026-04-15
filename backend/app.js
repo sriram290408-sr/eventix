@@ -16,7 +16,10 @@ const app = express();
 app.use(express.json());
 
 // Middleware
-const allowedOrigins = [process.env.FRONTEND_URL].filter(Boolean);
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  "http://localhost:5173",
+].filter(Boolean);
 
 // CORS
 app.use(
@@ -26,13 +29,16 @@ app.use(
 
       if (allowedOrigins.includes(origin)) return callback(null, true);
 
-      const error = new Error("Not allowed by CORS");
-      error.statusCode = 403;
-      return callback(error);
+      return callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+
+// Handle preflight requests
+app.options("*", cors());
 
 // Root Route
 app.get("/", (req, res) => {
@@ -54,7 +60,7 @@ app.use((req, res) => {
 
 // 500 handler (INTERNAL SERVER ERROR)
 app.use((err, req, res, next) => {
-  res.status(err.statusCode || 500).json({
+  res.status(500).json({
     success: false,
     message: err.message || "Server Error",
   });
