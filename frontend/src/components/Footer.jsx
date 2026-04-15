@@ -40,16 +40,10 @@ function Footer() {
 
             <Button
               component={Link}
-              to="/discover"
-              sx={{ fontSize: "12px", color: "#a3a3a3" }}
+              to="/private/discover"
+              sx={{ fontSize: "12px", color: "#ffffff" }}
             >
               Discover
-            </Button>
-            <Button
-              component={Link}
-              sx={{ fontSize: "12px", color: "#a3a3a3" }}
-            >
-              Help
             </Button>
           </Box>
 
@@ -73,16 +67,16 @@ function Footer() {
           {/* Right section */}
           <Box className="footer-right">
             <IconButton component={Link} to={"https://www.instagram.com"}>
-              <Instagram sx={{ fontSize: "18px", color: "#a3a3a3" }} />
+              <Instagram sx={{ fontSize: "18px", color: "#ffffff" }} />
             </IconButton>
             <IconButton component={Link} to={"https://x.com"}>
-              <X sx={{ fontSize: "18px", color: "#a3a3a3" }} />
+              <X sx={{ fontSize: "18px", color: "#ffffff" }} />
             </IconButton>
             <IconButton
               component={Link}
               to={"https://mail.google.com/mail/u/0/#inbox?compose=new"}
             >
-              <Email sx={{ fontSize: "19px", color: "#a3a3a3" }} />
+              <Email sx={{ fontSize: "19px", color: "#ffffff" }} />
             </IconButton>
           </Box>
         </Stack>
