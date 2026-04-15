@@ -19,6 +19,7 @@ app.use(express.json());
 const allowedOrigins = [
   process.env.FRONTEND_URL,
   "http://localhost:5173",
+  "https://eventix-4yuz.vercel.app",
 ].filter(Boolean);
 
 // CORS
