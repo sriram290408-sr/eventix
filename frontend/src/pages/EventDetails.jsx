@@ -57,7 +57,7 @@ function EventDetails() {
     setToast({ open: true, message });
   };
 
-  // ---------------- Fetch Event ----------------
+  // Fetch Event
   const fetchEvent = async () => {
     try {
       setLoading(true);
@@ -85,7 +85,7 @@ function EventDetails() {
     }
   };
 
-  // ---------------- Fetch Requests ----------------
+  // Fetch Requests
   const fetchRequests = async (eventId) => {
     try {
       setRequestsLoading(true);
@@ -112,7 +112,7 @@ function EventDetails() {
     }
   };
 
-  // ---------------- Approve Request ----------------
+  // Approve Request
   const approveRequest = async (eventId, requestId) => {
     try {
       const res = await fetch(
@@ -132,17 +132,17 @@ function EventDetails() {
         return;
       }
 
-      showToast("Approved Successfully ✅");
+      showToast("Approved Successfully");
 
-      // remove request instantly
-      setRequests((prev) => prev.filter((r) => r._id !== requestId));
+      // refresh list
+      fetchRequests(eventId);
     } catch (err) {
       console.log("Approve Error:", err);
       showToast("Approve failed");
     }
   };
 
-  // ---------------- Reject Request ----------------
+  // Reject Request
   const rejectRequest = async (eventId, requestId) => {
     try {
       const res = await fetch(`${BASE_URL}/api/v1/events/${eventId}/requests/${requestId}/reject`, {
@@ -159,17 +159,17 @@ function EventDetails() {
         return;
       }
 
-      showToast("Rejected ❌");
+      showToast("Rejected");
 
-      // remove request instantly
-      setRequests((prev) => prev.filter((r) => r._id !== requestId));
+      // refresh list
+      fetchRequests(eventId);
     } catch (err) {
       console.log("Reject Error:", err);
       showToast("Reject failed");
     }
   };
 
-  // ---------------- Join Event ----------------
+  // Join Event
   const handleJoin = async () => {
     try {
       if (!event?._id) return;
@@ -194,9 +194,9 @@ function EventDetails() {
       setParticipationStatus(status);
 
       if (status === "pending") {
-        showToast("Request sent for approval ⏳");
+        showToast("Request sent for approval");
       } else {
-        showToast("You joined the event! ✅");
+        showToast("You joined the event!");
       }
     } catch (err) {
       console.log("Join Error:", err);
@@ -206,7 +206,7 @@ function EventDetails() {
     }
   };
 
-  // ---------------- Cancel Event ----------------
+  // Cancel Event
   const cancelEvent = async () => {
     try {
       if (!event?._id) return;
@@ -227,7 +227,7 @@ function EventDetails() {
         return;
       }
 
-      showToast("Event cancelled ❌");
+      showToast("Event cancelled");
       navigate("/private/my-event", { replace: true });
     } catch (err) {
       console.log("Cancel Event Error:", err);
@@ -238,12 +238,12 @@ function EventDetails() {
     }
   };
 
-  // ---------------- Copy Link ----------------
+  // Copy Link
   const copyLink = async () => {
     try {
       const url = `${window.location.origin}/private/event/${slug}`;
       await navigator.clipboard.writeText(url);
-      showToast("Event link copied 🔗");
+      showToast("Event link copied");
     } catch {
       showToast("Failed to copy link");
     }
@@ -270,7 +270,6 @@ function EventDetails() {
 
   const alreadyJoined = participationStatus === "approved";
   const pendingApproval = participationStatus === "pending";
-  const rejected = participationStatus === "rejected";
 
   const mapUrl = event?.locationUrl
     ? event.locationUrl
@@ -278,7 +277,7 @@ function EventDetails() {
         event?.location || "",
       )}`;
 
-  // ---------------- Fetch Data ----------------
+  // Fetch Data
   useEffect(() => {
     if (!token) {
       navigate("/signin", { replace: true });
@@ -288,7 +287,7 @@ function EventDetails() {
     fetchEvent();
   }, [token, slug]);
 
-  // Fetch requests only for creator
+  // Fetch requests for creator
   useEffect(() => {
     if (event?._id && isCreator) {
       fetchRequests(event._id);
@@ -566,13 +565,20 @@ function EventDetails() {
                 </Typography>
               </Box>
 
-              {/* ================== REQUEST LIST ================== */}
-              {isCreator && event.requireApproval && (
+              {/* REQUEST LIST*/}
+              {isCreator && (
                 <>
                   <Divider sx={{ borderColor: "rgba(255,255,255,0.12)" }} />
 
                   <Box>
-                    <Typography sx={{ fontSize: "1.2rem", fontWeight: 800, color: "white", mb: 2 }}>
+                    <Typography
+                      sx={{
+                        fontSize: "1.2rem",
+                        fontWeight: 800,
+                        color: "white",
+                        mb: 2,
+                      }}
+                    >
                       Join Requests
                     </Typography>
 
@@ -603,7 +609,10 @@ function EventDetails() {
                               </Typography>
 
                               <Typography
-                                sx={{ color: "rgba(255,255,255,0.7)", fontSize: "0.9rem" }}
+                                sx={{
+                                  color: "rgba(255,255,255,0.7)",
+                                  fontSize: "0.9rem",
+                                }}
                               >
                                 {req.user?.email}
                               </Typography>
