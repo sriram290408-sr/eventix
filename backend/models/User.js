@@ -15,6 +15,14 @@ const userSchema = new mongoose.Schema(
       trim: true,
     },
 
+    username: {
+      type: String,
+      unique: true,
+      sparse: true,
+      trim: true,
+      default: undefined,
+    },
+
     email: {
       type: String,
       required: true,
@@ -40,14 +48,15 @@ const userSchema = new mongoose.Schema(
     },
 
     socialLinks: {
-      type: Object,
-      default: {},
+      instagram: { type: String, default: "" },
+      youtube: { type: String, default: "" },
+      linkedin: { type: String, default: "" },
+      website: { type: String, default: "" },
     },
   },
   { timestamps: true }
 );
 
-// Hash password before saving user
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
 
@@ -57,7 +66,6 @@ userSchema.pre("save", async function (next) {
   next();
 });
 
-// Compare password during login
 userSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
