@@ -102,13 +102,13 @@ function CreateEvent() {
         endDate,
         location,
         visibility,
-        requireApproval: false,
+        requireApproval: true,
         ticketPrice: 0,
         image: selectedTheme?.img || "",
         theme: selectedTheme || null,
       };
 
-      // ✅ FIX BASE URL
+      // FIX BASE URL
       const BASE_URL = (import.meta.env.VITE_BACKEND_URL || "").replace(/\/$/, "");
 
       const res = await fetch(`${BASE_URL}/api/v1/events`, {

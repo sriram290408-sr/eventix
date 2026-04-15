@@ -63,7 +63,7 @@ const eventSchema = new mongoose.Schema(
 
     requireApproval: {
       type: Boolean,
-      default: false,
+      default: true,
     },
 
     ticketPrice: {

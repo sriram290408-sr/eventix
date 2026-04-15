@@ -70,7 +70,7 @@ const createEvent = async (req, res, next) => {
       location,
       locationUrl: locationUrl || "",
       visibility: visibility || "Public",
-      requireApproval: requireApproval || false,
+      requireApproval: requireApproval || true,
       ticketPrice: ticketPrice || 0,
       image: uploadedImage,
       theme: theme || null,
