@@ -129,7 +129,7 @@ function Profile() {
   const [profileLoading, setProfileLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  const BASE_URL = import.meta.env.VITE_BACKEND_URL || "";
+  const BASE_URL = (import.meta.env.VITE_BACKEND_URL || "").replace(/\/$/, "");
 
   // ================= FETCH PROFILE =================
   useEffect(() => {
