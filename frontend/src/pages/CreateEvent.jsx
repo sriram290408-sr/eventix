@@ -1,4 +1,4 @@
-import React from "react";
+import { useState } from "react";
 import {
   Box,
   Typography,
@@ -32,6 +32,8 @@ import useCreateEventForm from "../Hooks/useCreateEvent";
 function CreateEvent() {
   const navigate = useNavigate();
   const { token, isAuthenticated } = useAuth();
+
+  const [description, setDescription] = useState("");
 
   const {
     openImageModal,
@@ -67,16 +69,6 @@ function CreateEvent() {
     validateForm,
   } = useCreateEventForm();
 
-  const editor = useEditor({
-    extensions: [
-      StarterKit,
-      Placeholder.configure({
-        placeholder: "Type your event description...",
-      }),
-    ],
-    content: "",
-  });
-
   const handleCreateEvent = async () => {
     if (!isAuthenticated) {
       setAuthModal(true);
@@ -91,7 +83,7 @@ function CreateEvent() {
 
       const eventData = {
         title: eventName,
-        description: editor?.getHTML() || "",
+        description,
         category,
         startDate,
         endDate,
@@ -103,7 +95,6 @@ function CreateEvent() {
         theme: selectedTheme || null,
       };
 
-      // FIX BASE URL
       const BASE_URL = (import.meta.env.VITE_BACKEND_URL || "").replace(/\/$/, "");
 
       const res = await fetch(`${BASE_URL}/api/v1/events`, {
@@ -317,6 +308,21 @@ function CreateEvent() {
               <Typography variant="h6" color="white">
                 Event Description
               </Typography>
+
+              <TextField
+                multiline
+                rows={5}
+                fullWidth
+                placeholder="Write event description..."
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                sx={{
+                  mt: 2,
+                  background: "rgba(255,255,255,0.12)",
+                  borderRadius: "12px",
+                  textarea: { color: "white" },
+                }}
+              />
             </Box>
 
             <Box mt={4}>
@@ -334,6 +340,7 @@ function CreateEvent() {
                   borderRadius: "10px",
                 }}
               >
+                <MenuItem defaultValue={"Select Category"}>Select Category</MenuItem>
                 <MenuItem value="Tech">Tech</MenuItem>
                 <MenuItem value="Food & Drink">Food & Drink</MenuItem>
                 <MenuItem value="AI">AI</MenuItem>
@@ -366,9 +373,9 @@ function CreateEvent() {
                   <Typography color="white">Ticket Price</Typography>
                 </Box>
 
-                <Typography sx={{ color: "lightgray" }}>Free</Typography>
+                <Typography sx={{ color: "white" }}>Free</Typography>
 
-                <ArrowForwardIos sx={{ color: "lightgray", fontSize: 16 }} />
+                <ArrowForwardIos sx={{ color: "white", fontSize: 16 }} />
               </Box>
             </Box>
 
@@ -415,11 +422,23 @@ function CreateEvent() {
             Ticket Pricing
           </Typography>
 
-          <Typography sx={{ color: "rgba(255,255,255,0.75)", fontSize: "0.92rem", mb: 1 }}>
+          <Typography
+            sx={{
+              color: "rgba(255,255,255,0.75)",
+              fontSize: "0.92rem",
+              mb: 1,
+            }}
+          >
             Payments can be enabled through Stripe integration.
           </Typography>
 
-          <Typography sx={{ color: "rgba(255,255,255,0.7)", fontSize: "0.84rem", mb: 1.4 }}>
+          <Typography
+            sx={{
+              color: "rgba(255,255,255,0.7)",
+              fontSize: "0.84rem",
+              mb: 1.4,
+            }}
+          >
             Right now, event ticket is set to Free by default.
           </Typography>
 
