@@ -15,14 +15,6 @@ const userSchema = new mongoose.Schema(
       trim: true,
     },
 
-    username: {
-      type: String,
-      unique: true,
-      sparse: true,
-      trim: true,
-      default: undefined,
-    },
-
     email: {
       type: String,
       required: true,
@@ -70,6 +62,6 @@ userSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-const User = mongoose.model("User", userSchema);
+const User = mongoose.model("User", userSchema, "eventix");
 
 export default User;
