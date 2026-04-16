@@ -8,12 +8,7 @@ function LocationSearch({ location, setLocation }) {
   const handleSearch = (value) => {
     setLocation(value);
 
-    if (!value.trim()) {
-      setSuggestions([]);
-      return;
-    }
-
-    if (value.length < 3) {
+    if (!value.trim() || value.length < 3) {
       setSuggestions([]);
       return;
     }
@@ -23,23 +18,22 @@ function LocationSearch({ location, setLocation }) {
     debounceRef.current = setTimeout(async () => {
       try {
         const url = `https://nominatim.openstreetmap.org/search?format=json&limit=5&q=${encodeURIComponent(
-          value
+          value,
         )}`;
 
-        const res = await fetch(`https://corsproxy.io/?${url}`);
+        const res = await fetch(url);
         const data = await res.json();
 
         setSuggestions(data || []);
-      } catch {
+      } catch (err) {
+        console.log("Location fetch error:", err);
         setSuggestions([]);
       }
     }, 500);
   };
 
   const handleSelectLocation = (place) => {
-    const name = place.display_name;
-
-    setLocation(name);
+    setLocation(place.display_name);
     setSuggestions([]);
   };
 
