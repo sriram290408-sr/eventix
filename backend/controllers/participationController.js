@@ -34,30 +34,33 @@ const requestToJoin = async (req, res) => {
       status,
     });
 
-    return successResponse(res, participation, 201);
+    return successResponse(res, participation, "Request sent successfully", 201);
   } catch (err) {
     return errorResponse(res, "Failed to join event", 500, err);
   }
 };
 
-// GET PENDING REQUESTS
+// GET PENDING REQUESTS (ADMIN)
 const getRequests = async (req, res) => {
   try {
     const requests = await Participation.find({
       event: req.params.id,
       status: "pending",
-    }).populate("user", "firstName lastName username email");
+    }).populate("user", "firstName lastName email avatar");
 
-    return successResponse(res, requests);
+    return successResponse(res, requests, "Requests fetched successfully");
   } catch (err) {
-    return errorResponse(res, "Failed to fetch requests", 500);
+    return errorResponse(res, "Failed to fetch requests", 500, err);
   }
 };
 
 // APPROVE REQUEST
 const approveRequest = async (req, res) => {
   try {
-    const request = await Participation.findById(req.params.requestId);
+    const request = await Participation.findOne({
+      _id: req.params.requestId,
+      event: req.params.id,
+    });
 
     if (!request) {
       return errorResponse(res, "Request not found", 404);
@@ -70,7 +73,7 @@ const approveRequest = async (req, res) => {
     request.status = "approved";
     await request.save();
 
-    return successResponse(res, request);
+    return successResponse(res, request, "Request approved successfully");
   } catch (err) {
     return errorResponse(res, "Failed to approve request", 500, err);
   }
@@ -79,7 +82,10 @@ const approveRequest = async (req, res) => {
 // REJECT REQUEST
 const rejectRequest = async (req, res) => {
   try {
-    const request = await Participation.findById(req.params.requestId);
+    const request = await Participation.findOne({
+      _id: req.params.requestId,
+      event: req.params.id,
+    });
 
     if (!request) {
       return errorResponse(res, "Request not found", 404);
@@ -92,7 +98,7 @@ const rejectRequest = async (req, res) => {
     request.status = "rejected";
     await request.save();
 
-    return successResponse(res, request);
+    return successResponse(res, request, "Request rejected successfully");
   } catch (err) {
     return errorResponse(res, "Failed to reject request", 500, err);
   }
@@ -104,11 +110,11 @@ const getGuests = async (req, res) => {
     const guests = await Participation.find({
       event: req.params.id,
       status: "approved",
-    }).populate("user", "firstName lastName username email");
+    }).populate("user", "firstName lastName email avatar");
 
-    return successResponse(res, guests);
+    return successResponse(res, guests, "Guests fetched successfully");
   } catch (err) {
-    return errorResponse(res, "Failed to fetch guests", 500);
+    return errorResponse(res, "Failed to fetch guests", 500, err);
   }
 };
 

@@ -50,6 +50,10 @@ function EventDetails() {
     message: "",
   });
 
+  // Requests
+  const [requests, setRequests] = useState([]);
+  const [requestLoading, setRequestLoading] = useState(false);
+
   const showToast = (message) => {
     setToast({ open: true, message });
   };
@@ -79,6 +83,89 @@ function EventDetails() {
       setEvent(null);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Fetch Requests (Creator Only)
+  const fetchRequests = async (eventId) => {
+    try {
+      setRequestLoading(true);
+
+      const res = await fetch(`${BASE_URL}/api/v1/events/${eventId}/requests`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        setRequests(data.data || []);
+      } else {
+        setRequests([]);
+      }
+    } catch (err) {
+      console.log("Fetch Requests Error:", err);
+      setRequests([]);
+    } finally {
+      setRequestLoading(false);
+    }
+  };
+
+  // Approve Request
+  const approveRequest = async (requestId) => {
+    try {
+      const res = await fetch(
+        `${BASE_URL}/api/v1/events/${event._id}/requests/${requestId}/approve`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        showToast(data.message || "Failed to approve request");
+        return;
+      }
+
+      showToast("Request Approved");
+      fetchRequests(event._id);
+    } catch (err) {
+      console.log("Approve Error:", err);
+      showToast("Failed to approve request");
+    }
+  };
+
+  // Reject Request
+  const rejectRequest = async (requestId) => {
+    try {
+      const res = await fetch(
+        `${BASE_URL}/api/v1/events/${event._id}/requests/${requestId}/reject`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        showToast(data.message || "Failed to reject request");
+        return;
+      }
+
+      showToast("Request Rejected");
+      fetchRequests(event._id);
+    } catch (err) {
+      console.log("Reject Error:", err);
+      showToast("Failed to reject request");
     }
   };
 
@@ -184,7 +271,6 @@ function EventDetails() {
   const alreadyJoined = participationStatus === "approved";
   const pendingApproval = participationStatus === "pending";
 
-  // Map URL
   const mapUrl = event?.locationUrl
     ? event.locationUrl
     : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
@@ -199,6 +285,12 @@ function EventDetails() {
 
     fetchEvent();
   }, [token, slug]);
+
+  useEffect(() => {
+    if (event?._id && isCreator) {
+      fetchRequests(event._id);
+    }
+  }, [event]);
 
   if (loading) {
     return (
@@ -218,19 +310,16 @@ function EventDetails() {
     );
   }
 
-  // Correctly handle theme
   const pageTheme = event.theme || {};
   const backgroundColor = pageTheme.bg || "#0e0e0e";
   const backgroundVideo = pageTheme.video || "";
 
-  // Correctly handle hero image
   const heroImage =
     event.image ||
     "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=1200&auto=format";
 
   return (
     <Box sx={{ minHeight: "100vh" }}>
-      {/* Video Theme */}
       {backgroundVideo && (
         <video
           autoPlay
@@ -251,7 +340,6 @@ function EventDetails() {
         </video>
       )}
 
-      {/* Background Overlay */}
       <div
         style={{
           position: "fixed",
@@ -276,7 +364,6 @@ function EventDetails() {
             boxShadow: "0 14px 48px rgba(0,0,0,0.35)",
           }}
         >
-          {/* Banner */}
           <Box sx={{ position: "relative" }}>
             <Box
               component="img"
@@ -300,7 +387,6 @@ function EventDetails() {
 
           <CardContent sx={{ p: { xs: 2.5, sm: 4 } }}>
             <Stack spacing={2.2}>
-              {/* Title */}
               <Stack direction="row" justifyContent="space-between" alignItems="center">
                 <Typography
                   variant="h3"
@@ -337,7 +423,6 @@ function EventDetails() {
                 )}
               </Stack>
 
-              {/* Info */}
               <Stack
                 direction={{ xs: "column", sm: "row" }}
                 spacing={2}
@@ -363,7 +448,7 @@ function EventDetails() {
                     <Stack direction="row" spacing={1} alignItems="center">
                       <Avatar src={event.creator?.avatar || ""} sx={{ width: 26, height: 26 }} />
                       <Typography sx={{ color: "rgba(255,255,255,0.85)" }}>
-                        {event.creator?.username || event.creator?.email || "Unknown"}
+                        {event.creator?.firstName || event.creator?.email || "Unknown"}
                       </Typography>
                     </Stack>
                   </Stack>
@@ -389,7 +474,6 @@ function EventDetails() {
                 </Stack>
               </Stack>
 
-              {/* Buttons */}
               <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
                 <Button
                   onClick={copyLink}
@@ -450,7 +534,6 @@ function EventDetails() {
 
               <Divider sx={{ borderColor: "rgba(255,255,255,0.12)" }} />
 
-              {/* Description */}
               <Box>
                 <Typography sx={{ fontSize: "1.1rem", fontWeight: 800, color: "white" }}>
                   Description
@@ -467,12 +550,96 @@ function EventDetails() {
                   {cleanDescription(event.description) || "No description provided."}
                 </Typography>
               </Box>
+
+              {/* JOIN REQUESTS SECTION */}
+              {isCreator && (
+                <>
+                  <Divider sx={{ borderColor: "rgba(255,255,255,0.12)" }} />
+
+                  <Box>
+                    <Typography
+                      sx={{
+                        fontSize: "1.1rem",
+                        fontWeight: 800,
+                        color: "white",
+                      }}
+                    >
+                      Join Requests
+                    </Typography>
+
+                    {requestLoading ? (
+                      <Typography sx={{ mt: 2, color: "rgba(255,255,255,0.7)" }}>
+                        Loading requests...
+                      </Typography>
+                    ) : requests.length === 0 ? (
+                      <Typography sx={{ mt: 2, color: "rgba(255,255,255,0.7)" }}>
+                        No pending requests
+                      </Typography>
+                    ) : (
+                      <Stack spacing={2} sx={{ mt: 2 }}>
+                        {requests.map((req) => (
+                          <Card
+                            key={req._id}
+                            sx={{
+                              background: "rgba(255,255,255,0.06)",
+                              border: "1px solid rgba(255,255,255,0.12)",
+                              borderRadius: "14px",
+                            }}
+                          >
+                            <CardContent>
+                              <Stack
+                                direction="row"
+                                justifyContent="space-between"
+                                alignItems="center"
+                              >
+                                <Stack direction="row" spacing={1.5} alignItems="center">
+                                  <Avatar src={req.user?.avatar || ""} />
+                                  <Box>
+                                    <Typography sx={{ color: "white", fontWeight: 800 }}>
+                                      {req.user?.firstName} {req.user?.lastName}
+                                    </Typography>
+                                    <Typography
+                                      sx={{
+                                        color: "rgba(255,255,255,0.65)",
+                                        fontSize: "0.9rem",
+                                      }}
+                                    >
+                                      {req.user?.email}
+                                    </Typography>
+                                  </Box>
+                                </Stack>
+
+                                <Stack direction="row" spacing={1}>
+                                  <Button
+                                    variant="contained"
+                                    color="success"
+                                    onClick={() => approveRequest(req._id)}
+                                  >
+                                    Approve
+                                  </Button>
+
+                                  <Button
+                                    variant="contained"
+                                    color="error"
+                                    onClick={() => rejectRequest(req._id)}
+                                  >
+                                    Reject
+                                  </Button>
+                                </Stack>
+                              </Stack>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </Stack>
+                    )}
+                  </Box>
+                </>
+              )}
             </Stack>
           </CardContent>
         </Card>
       </Box>
 
-      {/* Snackbar */}
       <Snackbar
         open={toast.open}
         onClose={() => setToast({ open: false, message: "" })}
@@ -481,7 +648,6 @@ function EventDetails() {
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       />
 
-      {/* Cancel Dialog */}
       <Dialog open={confirmCancelOpen} onClose={() => setConfirmCancelOpen(false)}>
         <DialogTitle>Cancel this event?</DialogTitle>
         <DialogContent>
