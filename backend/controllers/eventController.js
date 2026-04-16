@@ -7,6 +7,7 @@ import responseHandler from "../utils/responseHandler.js";
 const { successResponse, errorResponse } = responseHandler;
 
 // CREATE EVENT
+
 const createEvent = async (req, res) => {
   try {
     const {
@@ -57,13 +58,14 @@ const createEvent = async (req, res) => {
       isDeleted: false,
     });
 
-    return successResponse(res, event, "Event created successfully", 201);
+    return successResponse(res, event, 201);
   } catch (error) {
-    return errorResponse(res, error.message || "Failed to create event", 500, error);
+    return errorResponse(res, error.message || "Failed to create event", 500);
   }
 };
 
 // GET EVENT BY SLUG
+
 const getEventBySlug = async (req, res) => {
   try {
     const { slug } = req.params;
@@ -71,19 +73,20 @@ const getEventBySlug = async (req, res) => {
     const event = await Event.findOne({
       slug,
       isDeleted: false,
-    }).populate("creator", "firstName lastName email avatar");
+    }).populate("creator", "firstName lastName username email avatar");
 
     if (!event) {
       return errorResponse(res, "Event not found", 404);
     }
 
-    return successResponse(res, event, "Event fetched successfully");
+    return successResponse(res, event);
   } catch (error) {
-    return errorResponse(res, "Failed to fetch event", 500, error);
+    return errorResponse(res, "Failed to fetch event", 500);
   }
 };
 
 // GET MY EVENTS
+
 const getMyEvents = async (req, res) => {
   try {
     const events = await Event.find({
@@ -91,13 +94,14 @@ const getMyEvents = async (req, res) => {
       isDeleted: false,
     }).sort({ createdAt: -1 });
 
-    return successResponse(res, events, "My events fetched successfully");
+    return successResponse(res, events);
   } catch (error) {
-    return errorResponse(res, "Failed to fetch my events", 500, error);
+    return errorResponse(res, "Failed to fetch my events", 500);
   }
 };
 
 // GET EVENTS BY CATEGORY
+
 const getEventsByCategory = async (req, res) => {
   try {
     // Decode category (important for Food & Drink)
@@ -107,17 +111,16 @@ const getEventsByCategory = async (req, res) => {
       category,
       isDeleted: false,
       status: "published",
-    })
-      .sort({ startDate: 1 })
-      .populate("creator", "firstName lastName email avatar");
+    }).sort({ startDate: 1 });
 
-    return successResponse(res, events, "Category events fetched successfully");
+    return successResponse(res, events);
   } catch (error) {
-    return errorResponse(res, "Failed to fetch category events", 500, error);
+    return errorResponse(res, "Failed to fetch category events", 500);
   }
 };
 
 // GET DISCOVER EVENTS
+
 const getDiscoverEvents = async (req, res) => {
   try {
     const { category } = req.query;
@@ -134,33 +137,31 @@ const getDiscoverEvents = async (req, res) => {
 
     const events = await Event.find(filter)
       .sort({ startDate: 1 })
-      .populate("creator", "firstName lastName email avatar");
+      .populate("creator", "firstName lastName username email avatar");
 
-    return successResponse(res, events, "Discover events fetched successfully");
+    return successResponse(res, events);
   } catch (error) {
-    return errorResponse(res, "Failed to fetch discover events", 500, error);
+    return errorResponse(res, "Failed to fetch discover events", 500);
   }
 };
 
 // GET ATTENDING EVENTS
+
 const getAttendingEvents = async (req, res) => {
   try {
     const participations = await Participation.find({
       user: req.user._id,
       status: "approved",
-    }).populate({
-      path: "event",
-      populate: { path: "creator", select: "firstName lastName email avatar" },
-    });
+    }).populate("event");
 
     // remove deleted / null events
     const events = participations
       .filter((p) => p.event && p.event.isDeleted === false)
       .map((p) => p.event);
 
-    return successResponse(res, events, "Attending events fetched successfully");
+    return successResponse(res, events);
   } catch (error) {
-    return errorResponse(res, "Failed to fetch attending events", 500, error);
+    return errorResponse(res, "Failed to fetch attending events", 500);
   }
 };
 
@@ -177,7 +178,7 @@ const deleteEvent = async (req, res) => {
 
     return successResponse(res, { message: "Event deleted successfully" });
   } catch (error) {
-    return errorResponse(res, "Failed to delete event", 500, error);
+    return errorResponse(res, "Failed to delete event", 500);
   }
 };
 
