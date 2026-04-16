@@ -6,31 +6,58 @@ import { isEventAdmin } from "../middlewares/roleMiddleware.js";
 
 const router = express.Router();
 
-// Create Event
+// CREATE EVENT
+
 router.post("/", protect, eventController.createEvent);
 
-// Discover Events
+// DISCOVER EVENTS
+
 router.get("/discover", protect, eventController.getDiscoverEvents);
 
-// My Events
+// MY EVENTS
+
 router.get("/my-events", protect, eventController.getMyEvents);
 
-// Get Events by Category
+// ATTENDING EVENTS  
+
+router.get("/attending", protect, eventController.getAttendingEvents);
+
+// EVENTS BY CATEGORY
+
 router.get("/category/:category", protect, eventController.getEventsByCategory);
 
-// Join Event
+// JOIN EVENT
+
 router.post("/:id/join", protect, participationController.requestToJoin);
 
-// Requests list
+// REQUESTS LIST (Admin Only)
+
 router.get("/:id/requests", protect, isEventAdmin, participationController.getRequests);
 
-// Approve request
-router.put("/:id/requests/:requestId/approve", protect, isEventAdmin, participationController.approveRequest);
+// APPROVE REQUEST
 
-// Reject request
-router.put("/:id/requests/:requestId/reject", protect, isEventAdmin, participationController.rejectRequest);
+router.put(
+    "/:id/requests/:requestId/approve",
+    protect,
+    isEventAdmin,
+    participationController.approveRequest
+);
 
-// Get Event by Slug (KEEP LAST)
+// REJECT REQUEST
+
+router.put(
+    "/:id/requests/:requestId/reject",
+    protect,
+    isEventAdmin,
+    participationController.rejectRequest
+);
+
+// DELETE EVENT (Soft Delete) 
+
+router.delete("/:id", protect, isEventAdmin, eventController.deleteEvent);
+
+// GET EVENT BY SLUG (KEEP LAST)
+
 router.get("/:slug", protect, eventController.getEventBySlug);
 
 export default router;
