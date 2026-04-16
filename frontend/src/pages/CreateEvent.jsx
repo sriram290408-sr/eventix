@@ -19,10 +19,6 @@ import {
   LocalActivity,
 } from "@mui/icons-material";
 
-import { useEditor } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import Placeholder from "@tiptap/extension-placeholder";
-
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
@@ -30,7 +26,6 @@ import themes from "../context/Theme";
 import LocationSearch from "../components/LocationSearch";
 import ThemeSelector from "../components/ThemeSelector";
 import ImagePickerModal from "../components/ImagePickerModal";
-import TiptapEditor from "../components/TiptapEditor";
 
 import useCreateEventForm from "../Hooks/useCreateEvent";
 
@@ -322,7 +317,6 @@ function CreateEvent() {
               <Typography variant="h6" color="white">
                 Event Description
               </Typography>
-              <TiptapEditor editor={editor} />
             </Box>
 
             <Box mt={4}>
