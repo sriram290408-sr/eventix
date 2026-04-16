@@ -333,14 +333,18 @@ function CreateEvent() {
               <TextField
                 select
                 fullWidth
-                defaultvalue={"Select category"}
+                value={category}
                 onChange={(e) => setCategory(e.target.value)}
+                SelectProps={{ displayEmpty: true }}
                 sx={{
                   background: "white",
-                  color: "black",
                   borderRadius: "10px",
                 }}
               >
+                <MenuItem value="" disabled>
+                  Select Category
+                </MenuItem>
+
                 <MenuItem value="Tech">Tech</MenuItem>
                 <MenuItem value="Food & Drink">Food & Drink</MenuItem>
                 <MenuItem value="AI">AI</MenuItem>
