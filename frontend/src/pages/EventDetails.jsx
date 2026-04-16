@@ -266,7 +266,9 @@ function EventDetails() {
     return JSON.stringify(desc);
   };
 
-  const isCreator = event?.creator?._id === user?._id;
+  const isCreator =
+    event?.creator?._id?.toString() === user?._id?.toString() ||
+    event?.creator?.toString() === user?._id?.toString();
 
   const alreadyJoined = participationStatus === "approved";
   const pendingApproval = participationStatus === "pending";
