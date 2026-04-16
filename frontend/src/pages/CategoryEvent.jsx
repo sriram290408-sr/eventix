@@ -50,10 +50,10 @@ function SmallEventCard({ event, onClick }) {
       <Box
         component="img"
         src={
-          event.image ||
+          event?.image ||
           "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=600&auto=format"
         }
-        alt={event.title || "Event"}
+        alt={event?.title || "Event"}
         loading="lazy"
         sx={{
           width: "100%",
@@ -75,7 +75,7 @@ function SmallEventCard({ event, onClick }) {
               flex: 1,
             }}
           >
-            {event.title}
+            {event?.title || "Untitled Event"}
           </Typography>
 
           {showStatus && (
@@ -93,7 +93,7 @@ function SmallEventCard({ event, onClick }) {
         </Box>
 
         <Typography sx={{ color: "rgba(255,255,255,0.65)", fontSize: "0.92rem" }}>
-          {(event.category || "Category") + (dateLabel ? ` • ${dateLabel}` : "")}
+          {(event?.category || "Category") + (dateLabel ? ` • ${dateLabel}` : "")}
         </Typography>
 
         <Typography
@@ -111,7 +111,7 @@ function SmallEventCard({ event, onClick }) {
             "&:hover": { textDecoration: "underline" },
           }}
         >
-          {event.location || "Location TBD"}
+          {event?.location || "Location TBD"}
         </Typography>
       </Box>
     </Box>
@@ -120,7 +120,7 @@ function SmallEventCard({ event, onClick }) {
 
 function CategoryEvents() {
   const { category } = useParams();
-  const decodedCategory = decodeURIComponent(category);
+  const decodedCategory = decodeURIComponent(category || "");
 
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);

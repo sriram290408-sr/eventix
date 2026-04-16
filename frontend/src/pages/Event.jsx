@@ -24,10 +24,10 @@ function AttendingSmallCard({ event, onClick }) {
     >
       <img
         src={
-          event.image ||
+          event?.image ||
           "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=600&auto=format"
         }
-        alt={event.title}
+        alt={event?.title || "Event"}
         style={{
           width: "100%",
           height: 150,
@@ -46,7 +46,7 @@ function AttendingSmallCard({ event, onClick }) {
             lineHeight: 1.2,
           }}
         >
-          {event.title}
+          {event?.title || "Untitled Event"}
         </Typography>
 
         <div
@@ -60,7 +60,7 @@ function AttendingSmallCard({ event, onClick }) {
           }}
         >
           <CalendarTodayOutlinedIcon sx={{ fontSize: 15 }} />
-          {event.startDate
+          {event?.startDate
             ? new Date(event.startDate).toLocaleDateString("en-IN", {
                 day: "2-digit",
                 month: "short",
@@ -79,7 +79,7 @@ function AttendingSmallCard({ event, onClick }) {
           }}
         >
           <LocationOnOutlinedIcon sx={{ fontSize: 15 }} />
-          <span>{event.location || "Location TBD"}</span>
+          <span>{event?.location || "Location TBD"}</span>
         </div>
       </div>
     </div>
@@ -141,7 +141,7 @@ function Event() {
   }, [token]);
 
   const filteredEvents = events.filter((event) => {
-    if (!event.startDate) return false;
+    if (!event || !event.startDate) return false;
 
     const eventDate = new Date(event.startDate);
     const now = new Date();
