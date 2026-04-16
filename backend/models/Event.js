@@ -70,6 +70,17 @@ const eventSchema = new mongoose.Schema(
       default: "",
     },
 
+    theme: {
+      bg: {
+        type: String,
+        default: "",
+      },
+      video: {
+        type: String,
+        default: "",
+      },
+    },
+
     status: {
       type: String,
       enum: ["draft", "published"],

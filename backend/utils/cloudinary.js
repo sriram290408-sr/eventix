@@ -28,14 +28,11 @@ export const uploadAvatarImage = async (file) => {
   try {
     if (!file) return "";
 
-    return new Promise((resolve, reject) => {
-      cloudinary.uploader
-        .upload_stream({ folder: "eventaxis/avatars" }, (error, result) => {
-          if (error) return reject(error);
-          resolve(result.secure_url);
-        })
-        .end(file.buffer);
+    const result = await cloudinary.uploader.upload(file.path, {
+      folder: "eventaxis/avatars",
     });
+
+    return result.secure_url;
   } catch (error) {
     console.error("Avatar upload failed:", error.message);
     return "";
