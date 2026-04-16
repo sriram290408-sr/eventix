@@ -23,7 +23,7 @@ export const getProfile = async (req, res) => {
 // UPDATE PROFILE
 export const updateProfile = async (req, res) => {
   try {
-    const { firstName, lastName, username, bio, socialLinks } = req.body;
+    const { firstName, lastName, bio, socialLinks } = req.body;
 
     const user = await User.findById(req.user._id);
 
@@ -33,7 +33,6 @@ export const updateProfile = async (req, res) => {
 
     if (firstName !== undefined) user.firstName = firstName.trim();
     if (lastName !== undefined) user.lastName = lastName.trim();
-    if (username !== undefined) user.username = username.trim();
     if (bio !== undefined) user.bio = bio;
 
     if (socialLinks) {
