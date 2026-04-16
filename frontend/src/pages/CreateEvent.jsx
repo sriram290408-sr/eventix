@@ -377,7 +377,7 @@ function CreateEvent() {
                   <Typography color="white">Ticket Price</Typography>
                 </Box>
 
-                <Typography sx={{ color: "white", marginLeft: "90px" }}>Free</Typography>
+                <Typography sx={{ color: "white", marginLeft: "70%" }}>Free</Typography>
 
                 <ArrowForwardIos sx={{ color: "white", fontSize: 16 }} />
               </Box>
