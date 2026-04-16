@@ -74,7 +74,7 @@ function EventDetails() {
 
       if (res.ok && data.success) {
         setEvent(data.data); 
-        setParticipationStatus(null); // optional
+        setParticipationStatus(null); 
       } else {
         setEvent(null);
       }
