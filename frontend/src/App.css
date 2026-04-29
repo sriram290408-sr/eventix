@@ -1,27 +1,35 @@
+@import "tailwindcss";
+
 body {
+  margin: 0;
+  font-family: "Inter", sans-serif;
   background-color: black;
   color: white;
-  margin: 0;
-  font-family: sans-serif, "inter";
 }
 
 body::before {
-  content: "normal";
+  content: "";
   position: fixed;
+  inset: 0;
   top: -120px;
-  left: 0;
-  right: 0;
-  width: 100vw;
   height: 300px;
-  z-index: 0;
+  z-index: -1;
 
-  background: radial-gradient(
-    ellipse at top,
-    rgba(0, 102, 255, 0.7) 0%,
-    rgba(0, 102, 254, 0.4) 40%,
-    rgba(0, 54, 116, 0) 80%
-  );
+  background: radial-gradient(ellipse at top,
+      rgba(0, 102, 255, 0.7) 0%,
+      rgba(0, 102, 254, 0.4) 40%,
+      rgba(0, 54, 116, 0) 80%);
+
   filter: blur(150px);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 @media (max-width: 768px) {

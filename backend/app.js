@@ -6,42 +6,26 @@ import authRoutes from "./routes/authRoutes.js";
 import eventRoutes from "./routes/eventRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 
-// Load Environment Variables
 dotenv.config();
 
-// Creating App
 const app = express();
 
-// Parsing the data
+// Body parser
 app.use(express.json());
-
-// Middleware
-const allowedOrigins = [
-  process.env.FRONTEND_URL,
-  "http://localhost:5173",
-  "https://eventix-4yuz.vercel.app",
-].filter(Boolean);
 
 // CORS
 app.use(
   cors({
-    origin: (origin, callback) => {
-      if (!origin) return callback(null, true);
-
-      if (allowedOrigins.includes(origin)) return callback(null, true);
-
-      return callback(new Error("Not allowed by CORS"));
-    },
+    origin: [
+      process.env.FRONTEND_URL,
+      "http://localhost:5173",
+      "https://eventix-4yuz.vercel.app",
+    ].filter(Boolean),
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
-// Handle preflight requests
-app.options("*", cors());
-
-// Root Route
+// Root
 app.get("/", (req, res) => {
   res.send("Backend Running Successfully");
 });
@@ -51,20 +35,14 @@ app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/events", eventRoutes);
 app.use("/api/v1/users", userRoutes);
 
-// 404 handler (NOT FOUND)
+// 404
 app.use((req, res) => {
-  res.status(404).json({
-    success: false,
-    message: `Route not found: ${req.originalUrl}`,
-  });
+  res.status(404).json({ message: "Route not found" });
 });
 
-// 500 handler (INTERNAL SERVER ERROR)
+// Error handler
 app.use((err, req, res, next) => {
-  res.status(500).json({
-    success: false,
-    message: err.message || "Server Error",
-  });
+  res.status(500).json({ message: err.message });
 });
 
 export default app;

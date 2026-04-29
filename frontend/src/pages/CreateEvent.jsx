@@ -17,6 +17,7 @@ import {
   Public,
   AutoAwesome,
   LocalActivity,
+  Clear,
 } from "@mui/icons-material";
 
 import { useNavigate } from "react-router-dom";
@@ -123,73 +124,40 @@ function CreateEvent() {
   };
 
   return (
-    <div style={{ fontFamily: selectedTheme.font, minHeight: "100vh" }}>
+    <div className="min-h-screen">
       {selectedTheme.video && (
         <video
+          className="fixed top-0 left-0 w-full h-full object-cover -z-[2]"
           key={selectedTheme.video}
           autoPlay
           loop
           muted
           playsInline
-          style={{
-            position: "fixed",
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-            top: 0,
-            left: 0,
-            zIndex: -2,
-          }}
         >
           <source src={selectedTheme.video} type="video/mp4" />
         </video>
       )}
 
       <div
+        className="fixed inset-0 w-full h-full top-0 left-0 -z-[1] pointer-events-none"
         style={{
-          position: "fixed",
-          width: "100%",
-          height: "100%",
-          top: 0,
-          left: 0,
-          zIndex: -1,
-          pointerEvents: "none",
           background: selectedTheme.video ? "rgba(0,0,0,0.65)" : selectedTheme.bg || "#0e0e0e",
         }}
       />
 
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          gap: 5,
-          p: 4,
-          flexWrap: "wrap",
-        }}
-      >
+      <Box className="flex justify-center gap-5 p-4 flex-wrap">
         <Box>
-          <Box sx={{ position: "relative", width: 320 }}>
+          <Box className="relative w-80">
             <img
               src={selectedTheme.img}
-              width="100%"
-              height="320"
               alt="event"
-              style={{ borderRadius: "16px", objectFit: "cover" }}
+              className="w-full h-80 rounded-2xl object-cover"
             />
 
             <Image
               onClick={() => setOpenImageModal(true)}
-              sx={{
-                position: "absolute",
-                bottom: 12,
-                right: 12,
-                borderRadius: "50%",
-                p: 1,
-                cursor: "pointer",
-                background: "rgba(0,0,0,0.4)",
-                color: "white",
-                "&:hover": { transform: "scale(1.1)" },
-              }}
+              sx={{ color: "white", fontSize: "50px" }}
+              className="absolute bottom-3 right-3 rounded-full p-3 cursor-pointer bg-black/40 hover:scale-110 transition-transform"
             />
           </Box>
 
@@ -202,35 +170,29 @@ function CreateEvent() {
           />
         </Box>
 
-        <Box sx={{ width: "100%", maxWidth: "650px" }}>
+        <Box className="w-full max-w-[650px]">
           <FormControl
-            sx={{
-              width: "100%",
-              borderRadius: "20px",
-              overflowY: "auto",
-              maxHeight: "85vh",
-              background: "rgba(255, 255, 255, 0.08)",
-              backdropFilter: "blur(12px)",
-              border: "1px solid rgba(255, 255, 255, 0.15)",
-              boxShadow: "0 8px 32px rgba(0,0,0,0.35)",
-              p: 3,
-            }}
+            className="overflow-y-auto no-scrollbar 
+            w-full border-[20px] 
+            max-h-[85vh] bg-[rgba(255, 255, 255, 0.08)] 
+            backdrop-blur-[12px] rounded-2xl 
+            shadow-[0_8px_32px rgb(159, 159, 159)]"
+            sx={{ padding: 2, border: "1px solid grey" }}
           >
-            <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+            <Box className="flex justify-end">
               <Button
                 onClick={(e) => setAnchorEl(e.currentTarget)}
                 sx={{
-                  border: "1px solid rgba(255,255,255,0.2)",
+                  border: "1px solid grey",
                   borderRadius: "10px",
                   color: "white",
-                  backgroundColor: "rgba(0,0,0,0.3)",
                   textTransform: "none",
                 }}
               >
                 {visibility === "Public" ? (
-                  <Public sx={{ mr: 1 }} />
+                  <Public className="mr-[7px]" />
                 ) : (
-                  <AutoAwesome sx={{ mr: 1 }} />
+                  <AutoAwesome className="mr-[7px]" />
                 )}
                 {visibility}
                 <ArrowDropDown />
@@ -244,7 +206,7 @@ function CreateEvent() {
                   setAnchorEl(null);
                 }}
               >
-                <Public sx={{ mr: 3 }} /> Public
+                <Public className="mr-2" /> Public
               </MenuItem>
 
               <MenuItem
@@ -253,7 +215,7 @@ function CreateEvent() {
                   setAnchorEl(null);
                 }}
               >
-                <AutoAwesome sx={{ mr: 3 }} /> Private
+                <AutoAwesome className="mr-2" /> Private
               </MenuItem>
             </Menu>
 
@@ -261,41 +223,35 @@ function CreateEvent() {
               placeholder="Event Name"
               value={eventName}
               onChange={(e) => setEventName(e.target.value)}
-              fullWidth
+              className="w-full bg-[rgba(255,255,255,0.12)] rounded-sm"
               sx={{
                 mt: 2,
-                background: "rgba(255,255,255,0.12)",
-                borderRadius: "12px",
                 input: { color: "white", fontSize: "22px", fontWeight: 600 },
               }}
             />
             <Typography color="error">{errors.eventName}</Typography>
 
-            <Box sx={{ display: "flex", gap: 2, mt: 3, flexWrap: "wrap" }}>
-              <Box sx={{ flex: 1 }}>
-                <Typography color="white" mb={1}>
-                  Start Date
-                </Typography>
+            <Box className="flex mt-3 gap-2 flex-wrap " sx={{ mt: 3 }}>
+              <Box className="flex-1">
+                <Typography className="text-white mb-2">Start Date</Typography>
                 <TextField
                   type="date"
                   fullWidth
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  sx={{ background: "white", borderRadius: "10px" }}
+                  className="bg-white rounded-[10px]"
                 />
                 <Typography color="error">{errors.startDate}</Typography>
               </Box>
 
               <Box sx={{ flex: 1 }}>
-                <Typography color="white" mb={1}>
-                  End Date
-                </Typography>
+                <Typography className="text-white mb-2">End Date</Typography>
                 <TextField
                   type="date"
                   fullWidth
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  sx={{ background: "white", borderRadius: "10px" }}
+                  className="bg-white rounded-[10px]"
                 />
                 <Typography color="error">{errors.endDate}</Typography>
               </Box>
@@ -316,16 +272,14 @@ function CreateEvent() {
                 placeholder="Write event description..."
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
+                className="mt-2 bg-[rgba(255,255,255,0.12)] rounded-[12px] " 
                 sx={{
-                  mt: 2,
-                  background: "rgba(255,255,255,0.12)",
-                  borderRadius: "12px",
                   textarea: { color: "white" },
                 }}
               />
             </Box>
 
-            <Box mt={4}>
+            <Box className="mt-4">
               <Typography variant="h6" color="white" mb={1}>
                 Event Category
               </Typography>
@@ -420,7 +374,14 @@ function CreateEvent() {
             textAlign: "center",
           }}
         >
-          <LocalActivity sx={{ fontSize: 50, mb: 1 }} />
+          <Box className="relative">
+            <Clear
+              onClick={() => setPricingModal(false)}
+              sx={{ fontSize: "30px" }}
+              className="absolute top-1 right-1 text-white cursor-pointer hover:scale-110 transition-transform"
+            />
+            <LocalActivity sx={{ fontSize: "60px" }} className=" mb-2 text-white" />
+          </Box>
 
           <Typography variant="h5" mb={1}>
             Ticket Pricing

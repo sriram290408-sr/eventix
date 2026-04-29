@@ -85,7 +85,7 @@ function SignUp() {
     <div className="signin-page">
       <div className="signin-card">
         <Button component={Link} to="/" sx={{ display: "flex", justifyContent: "start" }}>
-          <ExitToAppRounded className="icon-box" />
+          <ExitToAppRounded className="text-2xl text-white color-white" />
         </Button>
 
         <Typography variant="h5" className="title" sx={{ textAlign: "center", mb: 2 }}>
